@@ -1,0 +1,5 @@
+# cp terraform.tfvars.example terraform.tfvars  (gitignored) and fill in:
+project_id          = "my-gcp-project"
+gmail_client_id     = "....apps.googleusercontent.com"
+gmail_client_secret = "GOCSPX-..."
+gmail_refresh_token = "1//..." # from scripts/get_refresh_token.py
