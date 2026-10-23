@@ -18,6 +18,7 @@ jobs:
       - name: Build with Google buildpacks
         run: |
           pack build my-first-function \
+            --path ./app \
             --builder gcr.io/buildpacks/builder:v1 \
             --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
             --env GOOGLE_FUNCTION_TARGET=scanEmail
