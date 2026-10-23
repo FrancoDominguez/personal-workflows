@@ -1,2 +1,0 @@
-# cp terraform.tfvars.example terraform.tfvars  (gitignored) and fill in:
-project_id = "my-gcp-project"
