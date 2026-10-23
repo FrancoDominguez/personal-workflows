@@ -1,10 +1,9 @@
-yaml
 name: My First Action
 
 # Triggers the workflow on every git push or pull request to the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -22,8 +21,3 @@ jobs:
             --builder gcr.io/buildpacks/builder:v1 \
             --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
             --env GOOGLE_FUNCTION_TARGET=scanEmail
-
-
-
-
-
