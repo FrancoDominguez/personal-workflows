@@ -21,7 +21,6 @@ resource "google_project_service" "apis" {
     "cloudbuild.googleapis.com",
     "eventarc.googleapis.com",
     "artifactregistry.googleapis.com",
-    "cloudscheduler.googleapis.com",
   ])
   service            = each.key
   disable_on_destroy = false

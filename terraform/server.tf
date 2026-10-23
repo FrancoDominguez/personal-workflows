@@ -1,4 +1,4 @@
-# Holds the zipped function source and the last-seen Gmail history id.
+# Holds the zipped function source for deploys.
 resource "google_storage_bucket" "bucket" {
   name                        = "${var.project_id}-gmail-webhook"
   location                    = var.region
@@ -22,12 +22,6 @@ resource "google_service_account" "fn" {
   account_id = "gmail-webhook"
 }
 
-resource "google_storage_bucket_iam_member" "fn_state" {
-  bucket = google_storage_bucket.bucket.name
-  role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.fn.email}"
-}
-
 # The Pub/Sub trigger delivers events by invoking the function's Run service as this SA.
 resource "google_project_iam_member" "fn_invoker" {
   project = var.project_id
@@ -46,7 +40,7 @@ resource "google_cloudfunctions2_function" "fn" {
   location = var.region
 
   build_config {
-    runtime     = "python312"
+    runtime     = "go126"
     entry_point = "handle"
     source {
       storage_source {
@@ -60,13 +54,6 @@ resource "google_cloudfunctions2_function" "fn" {
     available_memory      = "256M"
     max_instance_count    = 1
     service_account_email = google_service_account.fn.email
-    environment_variables = {
-      TOPIC               = google_pubsub_topic.gmail.id
-      STATE_BUCKET        = google_storage_bucket.bucket.name
-      GMAIL_CLIENT_ID     = var.gmail_client_id
-      GMAIL_CLIENT_SECRET = var.gmail_client_secret
-      GMAIL_REFRESH_TOKEN = var.gmail_refresh_token
-    }
   }
 
   event_trigger {
