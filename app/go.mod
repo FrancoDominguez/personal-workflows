@@ -1,4 +1,4 @@
-module franco-dominguez/gmail-webhook/app
+module francodominguez.com/gmail-webhook/app
 
 go 1.27.3
 
