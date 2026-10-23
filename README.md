@@ -24,7 +24,7 @@ last cursor in a GCS object and fetches whatever messages were added since.
    pip install google-auth-oauthlib
    python scripts/get_refresh_token.py CLIENT_ID CLIENT_SECRET
    ```
-4. `cp terraform.tfvars.example terraform.tfvars` and fill it in.
+4. `cd terraform && cp terraform.tfvars.example terraform.tfvars` and fill it in.
 5. ```sh
    terraform init
    terraform apply   # if the first apply trips on freshly-enabled APIs, just re-run it

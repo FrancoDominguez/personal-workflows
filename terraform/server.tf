@@ -8,7 +8,7 @@ resource "google_storage_bucket" "bucket" {
 
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "${path.module}/app"
+  source_dir  = "${path.module}/../app"
   output_path = "${path.module}/.build/app.zip"
 }
 
