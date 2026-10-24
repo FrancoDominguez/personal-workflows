@@ -8,3 +8,13 @@ variable "region" {
   description = "Default GCP region"
   default     = "us-central1"
 }
+
+variable "github_username" {
+    type = string
+    description = "Username of Github account running the CI"
+}
+
+variable "github_repo_name" {
+    type = string
+    description = "Name of the github repo"
+}

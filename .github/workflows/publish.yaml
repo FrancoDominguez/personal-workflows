@@ -1,0 +1,40 @@
+name: My First Action
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # The type of virtual machine the runner uses
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via OICD
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_CI_SA_EMAIL }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Install pack CLI
+        uses: buildpacks/github-actions/setup-pack@v6.2.0
+
+      - name: Build with Google buildpacks
+        run: |
+          pack build ${{ vars.GCP_REGION }}--docker.pkg.dev/${{ vars.GCP_PROJECT_ID}}/functions/my-first-function:${{ github.sha }} \
+            --path ./app \
+            --builder gcr.io/buildpacks/builder:google-22 \
+            --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
+            --env GOOGLE_FUNCTION_TARGET=scanEmail \
+            --publish
