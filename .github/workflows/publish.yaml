@@ -32,7 +32,7 @@ jobs:
 
       - name: Build with Google buildpacks
         run: |
-          pack build ${{ vars.GCP_REGION }}--docker.pkg.dev/${{ vars.GCP_PROJECT_ID}}/functions/my-first-function:${{ github.sha }} \
+          pack build ${{ vars.GCP_REGION }}-ocker.pkg.dev/${{ vars.GCP_PROJECT_ID}}/functions/my-first-function:${{ github.sha }} \
             --path ./app \
             --builder gcr.io/buildpacks/builder:google-22 \
             --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
