@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Authenticate to GCP via OICD
+      - name: Authenticate to GCP via OIDC
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
@@ -30,7 +30,7 @@ jobs:
       - name: Install pack CLI
         uses: buildpacks/github-actions/setup-pack@v6.2.0
 
-      - name: Build with Google buildpacks
+      - name: Build and push
         run: |
           pack build ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/functions/my-first-function:${{ github.sha }} \
             --path ./app \
@@ -38,3 +38,10 @@ jobs:
             --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
             --env GOOGLE_FUNCTION_TARGET=scanEmail \
             --publish
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy my-first-function \
+            --image ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/functions/my-first-function:${{ github.sha }} \
+            --region ${{ vars.GCP_REGION }} \
+            --project ${{ vars.GCP_PROJECT_ID }}

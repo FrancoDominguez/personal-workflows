@@ -18,3 +18,8 @@ variable "github_repo_name" {
     type = string
     description = "Name of the github repo"
 }
+
+variable "test_user_account_email" {
+    type = string
+    description = "Email of test user"
+}

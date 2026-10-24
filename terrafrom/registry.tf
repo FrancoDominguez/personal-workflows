@@ -4,7 +4,25 @@ resource "google_artifact_registry_repository" "functions" {
   repository_id = "functions"
   format        = "DOCKER"
   description   = "Container images for cloud functions"
-  depends_on = [ google_project_service.apis ]
+  cleanup_policy_dry_run = false
+
+  cleanup_policies {
+    id     = "delete-all-candidates"
+    action = "DELETE"
+    condition {
+      older_than = "0s"
+    }
+  }
+
+  cleanup_policies {
+    id     = "keep-recent"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 3
+    }
+  }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_service_account" "ci" {
