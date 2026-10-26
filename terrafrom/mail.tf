@@ -29,7 +29,7 @@ resource "google_pubsub_subscription" "gmail_push" {
   topic = google_pubsub_topic.gmail.id
 
   push_config {
-    push_endpoint = "${google_cloud_run_v2_service.function.uri}/webhook"  # whatever route your Go app handles
+    push_endpoint = "${google_cloud_run_v2_service.function.uri}/webhook" # whatever route your Go app handles
 
     oidc_token {
       service_account_email = google_service_account.pubsub_pusher.email

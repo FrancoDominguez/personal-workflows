@@ -1,10 +1,10 @@
 resource "google_iam_workload_identity_pool" "github" {
   workload_identity_pool_id = "github-pool"
-  depends_on = [ google_project_service.apis ]
+  depends_on                = [google_project_service.apis]
 }
 
 resource "google_iam_workload_identity_pool_provider" "github" {
-  workload_identity_pool_id = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
   workload_identity_pool_provider_id = "github-provider"
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
@@ -18,8 +18,8 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 
 resource "google_service_account_iam_member" "github_wif" {
   service_account_id = google_service_account.ci.name
-  role = "roles/iam.workloadIdentityUser"
-  member = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_username}/${var.github_repo_name}"
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_username}/${var.github_repo_name}"
 }
 
 resource "github_actions_variable" "wif_provider" {
