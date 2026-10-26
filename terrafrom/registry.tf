@@ -1,6 +1,6 @@
 resource "google_artifact_registry_repository" "functions" {
   project       = var.project_id
-  location      = "us-central1"
+  location      = var.region
   repository_id = "functions"
   format        = "DOCKER"
   description   = "Container images for cloud functions"

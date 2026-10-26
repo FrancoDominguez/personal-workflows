@@ -11,6 +11,15 @@ resource "google_cloud_run_v2_service" "function" {
     service_account = google_service_account.function_runtime.email
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
+        env {
+            name = "GMAIL_REFRESH_TOKEN"
+            value_source {
+                secret_key_ref {
+                    secret  = google_secret_manager_secret.gmail_refresh_token.secret_id
+                    version = "latest"
+                }
+            }
+        }
     }
   }
   lifecycle {
