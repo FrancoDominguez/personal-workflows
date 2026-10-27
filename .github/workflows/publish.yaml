@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # The type of virtual machine the runner uses
+    runs-on: ubuntu-24.04 # The type of virtual machine the runner uses
     steps:
       - uses: actions/checkout@v4
 
