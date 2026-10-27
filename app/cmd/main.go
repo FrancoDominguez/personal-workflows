@@ -4,7 +4,8 @@ import (
 	"log"
 	"os"
 
-	_ "franco-dominguez/gmail-webhook/app"
+	_ "francodominguez.com/gmail-webhook/app"
+
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	hostname := ""
 	if localOnly := os.Getenv("LOCAL_ONLY"); localOnly == "true" {
 		hostname = "127.0.0.1"
-	} 
+	}
 
 	log.Printf("Starting server on %s:%s", hostname, port)
 	if err := funcframework.StartHostPort(hostname, port); err != nil {
