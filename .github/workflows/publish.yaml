@@ -1,4 +1,4 @@
-name: My First Action
+name: Build and Deploy
 
 permissions:
   id-token: write
