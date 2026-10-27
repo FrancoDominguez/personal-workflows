@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
+  name: build and deploy
     runs-on: ubuntu-24.04 # The type of virtual machine the runner uses
     steps:
       - uses: actions/checkout@v4

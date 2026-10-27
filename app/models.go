@@ -2,7 +2,7 @@ package function
 
 type pushEnvelope struct {
     Message struct {
-        Data      []byte `json:"data"` // base64 in the JSON → auto-decoded bytes
+        Data      []byte `json:"data"`
         MessageID string `json:"messageId"`
     } `json:"message"`
     Subscription string `json:"subscription"`
