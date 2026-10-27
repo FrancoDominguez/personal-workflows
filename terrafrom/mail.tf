@@ -14,6 +14,7 @@ resource "google_pubsub_topic_iam_member" "gmail_publisher" {
 resource "google_service_account" "pubsub_pusher" {
   account_id   = "pubsub-pusher"
   display_name = "Pub/Sub push to Cloud Run"
+  depends_on   = [google_project_service.apis]
 }
 
 resource "google_cloud_run_v2_service_iam_member" "pubsub_invoker" {

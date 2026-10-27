@@ -26,7 +26,8 @@ resource "google_project_service" "apis" {
     "pubsub.googleapis.com",
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
-    "iam.googleapis.com"
+    "iam.googleapis.com",
+    "secretmanager.googleapis.com"
   ])
   project            = var.project_id
   service            = each.value

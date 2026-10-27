@@ -47,3 +47,9 @@ resource "google_cloud_run_v2_service_iam_member" "me_invoker" {
   role     = "roles/run.invoker"
   member   = "user:${var.test_user_account_email}"
 }
+
+resource "google_secret_manager_secret_iam_member" "function_reads_token" {
+  secret_id = google_secret_manager_secret.gmail_refresh_token.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.function_runtime.email}"
+}
