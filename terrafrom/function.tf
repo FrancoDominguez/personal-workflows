@@ -12,6 +12,10 @@ resource "google_cloud_run_v2_service" "function" {
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
       env {
+        name  = "PROJECT_ID"
+        value = var.project_id
+      }
+      env {
         name = "GMAIL_REFRESH_TOKEN"
         value_source {
           secret_key_ref {
@@ -21,7 +25,6 @@ resource "google_cloud_run_v2_service" "function" {
         }
       }
       env {
-        # Not a secret: the client id is public (it appears in every consent URL)
         name  = "GMAIL_CLIENT_ID"
         value = var.gcp_client_id
       }
