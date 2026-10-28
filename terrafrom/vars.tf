@@ -24,12 +24,7 @@ variable "test_user_account_email" {
   description = "Email of test user"
 }
 
-variable "gcp_client_secret" {
-  type        = string
-  description = "Client secret from GCP consent screen"
-}
-
 variable "gcp_client_id" {
   type        = string
-  description = "Client id from GCP consent screen"
+  description = "OAuth client id from GCP consent screen (public, not a secret)"
 }

@@ -21,13 +21,9 @@ resource "google_cloud_run_v2_service" "function" {
         }
       }
       env {
-        name = "GMAIL_CLIENT_ID"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.gmail_client_id.secret_id
-            version = "latest"
-          }
-        }
+        # Not a secret: the client id is public (it appears in every consent URL)
+        name  = "GMAIL_CLIENT_ID"
+        value = var.gcp_client_id
       }
       env {
         name = "GMAIL_CLIENT_SECRET"
