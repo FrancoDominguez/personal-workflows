@@ -23,19 +23,19 @@ resource "google_secret_manager_secret" "gmail_client_secret" {
 }
 
 resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail_refresh_token" {
-  secret_id = google_secret_manager_secret.gmail_refresh_token.id
+  secret_id = google_secret_manager_secret.gmail_refresh_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.function_runtime.email}"
 }
 
 resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail_client_id" {
-  secret_id = google_secret_manager_secret.gmail_client_id
+  secret_id = google_secret_manager_secret.gmail_client_id.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.function_runtime.email}"
 }
 
 resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail_client_secret" {
-  secret_id = google_secret_manager_secret.gmail_client_secret
+  secret_id = google_secret_manager_secret.gmail_client_secret.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.function_runtime.email}"
 }
