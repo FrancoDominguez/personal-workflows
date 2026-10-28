@@ -39,3 +39,18 @@ resource "google_pubsub_subscription" "gmail_push" {
 
   ack_deadline_seconds = 30
 }
+
+# database to store history id
+resource "google_firestore_database" "database" {
+  project     = var.project_id
+  name        = "(default)"
+  location_id = "nam5"
+  type        = "FIRESTORE_NATIVE"
+  depends_on = [ google_project_service.apis ]
+}
+
+resource "google_project_iam_member" "function_uses_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.function_runtime.email}"
+}
