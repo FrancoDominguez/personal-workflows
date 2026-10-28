@@ -46,7 +46,7 @@ resource "google_firestore_database" "database" {
   name        = "(default)"
   location_id = "nam5"
   type        = "FIRESTORE_NATIVE"
-  depends_on = [ google_project_service.apis ]
+  depends_on  = [google_project_service.apis]
 }
 
 resource "google_project_iam_member" "function_uses_firestore" {
