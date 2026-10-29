@@ -81,6 +81,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 	var notif *gmailNotification
 	notif, err = decodeRequestBody(r)
 	if err != nil {
+		log.Printf("decoding request body: %v", err)
 		return
 	}
 
@@ -91,16 +92,19 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 	var snapshot *firestore.DocumentSnapshot
 	snapshot, err = document.Get(ctx)
 	if err != nil {
+		log.Printf("fetching cursor document from firestore: %v", err)
 		return
 	}
 
 	var historyIdValue any
 	historyIdValue, err = snapshot.DataAt("historyId")
 	if err != nil {
+		log.Printf("reading historyId field: %v", err)
 		return
 	}
 	historyId, ok := historyIdValue.(int64)
 	if !ok {
+		log.Printf("historyId is not an int64, got %T", historyIdValue)
 		return
 	}
 
@@ -111,6 +115,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		Context(ctx).
 		Do()
 	if err != nil {
+		log.Printf("listing history from %d: %v", historyId, err)
 		return
 	}
 
@@ -124,14 +129,22 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 	for _, messageId := range messageIds{
 		msg, err := gmailService.Users.Messages.Get("me", messageId).Format("full").Context(ctx).Do()
 		if err != nil {
+			log.Printf("fetching message %s: %v", messageId, err)
 			return
 		}
 
-		var htmlContent string
+		var textContent string
 		var subject string
 		var unsub string
 		for _, part := range msg.Payload.Parts {
-        	if part.MimeType == "text/plain" { data, _ := base64.URLEncoding.DecodeString(part.Body.Data); htmlContent = string(data) }
+			if part.MimeType == "text/plain" {
+				data, err := base64.URLEncoding.DecodeString(part.Body.Data)
+				if err != nil {
+					log.Printf("decoding body of message %s: %v", messageId, err)
+					continue
+				}
+				textContent = string(data)
+			}
 		}
 		for _, header := range msg.Payload.Headers { 
 			if header.Name == "List-Unsubscribe" { unsub = header.Value } 
@@ -140,6 +153,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
-		log.Printf("Content: %s", htmlContent)
+		log.Printf("Content: %s", textContent)
 	}
 }
