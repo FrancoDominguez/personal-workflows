@@ -14,6 +14,8 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -92,6 +94,13 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 	var snapshot *firestore.DocumentSnapshot
 	snapshot, err = document.Get(ctx)
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			_, err = document.Set(ctx, map[string]any{"historyId": int64(notif.HistoryID)})
+			if err != nil {
+				log.Printf("seeding cursor: %v", err)
+			}
+			return
+		}
 		log.Printf("fetching cursor document from firestore: %v", err)
 		return
 	}
@@ -136,15 +145,23 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		var textContent string
 		var subject string
 		var unsub string
-		for _, part := range msg.Payload.Parts {
-			if part.MimeType == "text/plain" {
-				data, err := base64.URLEncoding.DecodeString(part.Body.Data)
-				if err != nil {
-					log.Printf("decoding body of message %s: %v", messageId, err)
-					continue
+		if msg.Payload.Parts != nil {
+			for _, part := range msg.Payload.Parts {
+				if part.MimeType == "text/plain" {
+					data, err := base64.URLEncoding.DecodeString(part.Body.Data)
+					if err != nil {
+						log.Printf("decoding body of message %s: %v", messageId, err)
+						continue
+					}
+					textContent = string(data)
 				}
-				textContent = string(data)
 			}
+		} else {
+			data, err := base64.URLEncoding.DecodeString(msg.Payload.Body.Data)
+			if err != nil {
+				log.Printf("decoding body of message %s: %v", messageId, err)
+			}
+			textContent = string(data)
 		}
 		for _, header := range msg.Payload.Headers { 
 			if header.Name == "List-Unsubscribe" { unsub = header.Value } 
@@ -154,5 +171,10 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
 		log.Printf("Content: %s", textContent)
+	}
+
+	_, err = document.Set(ctx, map[string]any{"historyId": int64(resp.HistoryId)})
+	if err != nil {
+		log.Printf("saving cursor: %v", err)
 	}
 }
