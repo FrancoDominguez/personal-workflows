@@ -139,7 +139,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		msg, err := gmailService.Users.Messages.Get("me", messageId).Format("full").Context(ctx).Do()
 		if err != nil {
 			log.Printf("fetching message %s: %v", messageId, err)
-			return
+			continue
 		}
 
 		var textContent string
