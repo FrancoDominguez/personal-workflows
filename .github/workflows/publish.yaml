@@ -34,7 +34,7 @@ jobs:
             --path ./app \
             --builder gcr.io/buildpacks/builder:google-22 \
             --env GOOGLE_FUNCTION_SIGNATURE_TYPE=http \
-            --env GOOGLE_FUNCTION_TARGET=scanEmail \
+            --env GOOGLE_FUNCTION_TARGET=autoEmailUnsubscribe \
             --publish
 
       - name: Deploy to Cloud Run
