@@ -171,6 +171,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
 		log.Printf("Content: %s", textContent)
+		log.Print("===========================================")
 	}
 
 	_, err = document.Set(ctx, map[string]any{"historyId": int64(resp.HistoryId)})
