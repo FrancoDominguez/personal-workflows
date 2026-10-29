@@ -37,7 +37,7 @@ resource "google_pubsub_subscription" "gmail_push" {
     }
   }
 
-  ack_deadline_seconds = 30
+  ack_deadline_seconds = 300
 }
 
 # database to store history id
