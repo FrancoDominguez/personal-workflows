@@ -89,31 +89,14 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("mailbox %s changed, historyId %d", notif.EmailAddress, notif.HistoryID)
 
-	document := firestoreClient.Collection("state").Doc("gmail")
-
-	var snapshot *firestore.DocumentSnapshot
-	snapshot, err = document.Get(ctx)
+	historyId, err := getFirestoreItem[int64](ctx, "gmail", "historyId", "historyId")
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			_, err = document.Set(ctx, map[string]any{"historyId": int64(notif.HistoryID)})
+			err = setFirestoreItem(ctx, "gmail", "historyId", "historyId", int64(notif.HistoryID))
 			if err != nil {
 				log.Printf("seeding cursor: %v", err)
 			}
-			return
 		}
-		log.Printf("fetching cursor document from firestore: %v", err)
-		return
-	}
-
-	var historyIdValue any
-	historyIdValue, err = snapshot.DataAt("historyId")
-	if err != nil {
-		log.Printf("reading historyId field: %v", err)
-		return
-	}
-	historyId, ok := historyIdValue.(int64)
-	if !ok {
-		log.Printf("historyId is not an int64, got %T", historyIdValue)
 		return
 	}
 
@@ -130,12 +113,12 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 	var messageIds []string
 	for _, history := range resp.History {
-		for _, messageAdded := range history.MessagesAdded{
+		for _, messageAdded := range history.MessagesAdded {
 			messageIds = append(messageIds, messageAdded.Message.Id)
 		}
 	}
 
-	for _, messageId := range messageIds{
+	for _, messageId := range messageIds {
 		msg, err := gmailService.Users.Messages.Get("me", messageId).Format("full").Context(ctx).Do()
 		if err != nil {
 			log.Printf("fetching message %s: %v", messageId, err)
@@ -163,18 +146,38 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			}
 			textContent = string(data)
 		}
-		for _, header := range msg.Payload.Headers { 
-			if header.Name == "List-Unsubscribe" { unsub = header.Value } 
-			if header.Name == "Subject" {subject = header.Value}
+		for _, header := range msg.Payload.Headers {
+			if header.Name == "List-Unsubscribe" {
+				unsub = header.Value
+			}
+			if header.Name == "Subject" {
+				subject = header.Value
+			}
 		}
 
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
 		log.Printf("Content: %s", textContent)
 		log.Print("===========================================")
+
+		// Updating the content list
+		contentList, err := getFirestoreItem[[]any](ctx, "gmail", "contentList", "contentList")
+		if err != nil && status.Code(err) != codes.NotFound {
+			return
+		}
+
+		contentList = append(contentList, textContent)
+		err = setFirestoreItem(ctx, "gmail", "contentList", "contentList", contentList)
+		if err != nil {
+			return
+		}
+
+		// using JEV, validate whether we want to unsubscribe to these emails here
+
+		// do the unsubscribing here
 	}
 
-	_, err = document.Set(ctx, map[string]any{"historyId": int64(resp.HistoryId)})
+	err = setFirestoreItem(ctx, "gmail", "historyId", "historyId", int64(resp.HistoryId))
 	if err != nil {
 		log.Printf("saving cursor: %v", err)
 	}
