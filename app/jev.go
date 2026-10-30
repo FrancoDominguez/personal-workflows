@@ -11,29 +11,29 @@ import (
 	"time"
 )
 
-type JevClient struct {
+type TypesafeClient struct {
 	baseUrl    string
 	apiKey     string
 	httpClient *http.Client
 }
 
-func NewJevClient(apiKey string) JevClient {
-	return JevClient{
+func NewTypesafeClient(apiKey string) TypesafeClient {
+	return TypesafeClient{
 		baseUrl:    "https://api.typesafe.ai/v1/systemone",
 		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 20 * time.Second},
 	}
 }
 
-type JevQuestion struct {
+type TypesafeQuestino struct {
 	Type         string `json:"type"`
 	Instructions string `json:"instructions"`
 }
 
-type JevNoulRequest struct {
+type TypesafeNoulRequest struct {
 	Model     string                 `json:"model"`
 	State     string                 `json:"state"`
-	Questions map[string]JevQuestion `json:"questions"`
+	Questions map[string]TypesafeQuestino `json:"questions"`
 }
 
 type NoulAnswer struct {
@@ -46,22 +46,22 @@ type Usage struct {
 	OutputTokens int `json:"output_tokens"`
 }
 
-type JevResponse struct {
+type TypesafeResponse struct {
 	Model   string                `json:"model"`
 	Answers map[string]NoulAnswer `json:"answers"`
 	Usage   Usage                 `json:"usage"`
 }
 
-func (c *JevClient) jevSingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
+func (c *TypesafeClient) typesafeSingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
 	var err error
 	var reqBody []byte
 	questionName := "singleQuestion"
 
 	reqBody, err = json.Marshal(
-		JevNoulRequest{
+		TypesafeNoulRequest{
 			Model: "jev-latest",
 			State: state,
-			Questions: map[string]JevQuestion{
+			Questions: map[string]TypesafeQuestino{
 				fmt.Sprintf("%s", questionName): {
 					Type:         "noul",
 					Instructions: instructions,
@@ -90,10 +90,10 @@ func (c *JevClient) jevSingleNoulQuestion(ctx context.Context, instructions, sta
 
 	if resp.StatusCode != http.StatusOK || (resp.StatusCode >= 500 && resp.StatusCode <= 599) {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return false, fmt.Errorf("jev returned %d: %s", resp.StatusCode, b)
+		return false, fmt.Errorf("typesafe returned %d: %s", resp.StatusCode, b)
 	}
 
-	var out JevResponse
+	var out TypesafeResponse
 	err = json.NewDecoder(resp.Body).Decode(&out)
 	if err != nil {
 		return false, err

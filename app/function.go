@@ -18,6 +18,7 @@ import (
 var (
 	firestoreClient *firestore.Client
 	gmailService    *gmail.Service
+	jevClient       TypesafeClient
 )
 
 func init() {
@@ -28,12 +29,15 @@ func init() {
 	gmailClientId := os.Getenv("GMAIL_CLIENT_ID")
 	gmailClientSecret := os.Getenv("GMAIL_CLIENT_SECRET")
 	gmailRefreshToken := os.Getenv("GMAIL_REFRESH_TOKEN")
+	typesafeApiKey := os.Getenv("GMAIL_CLIENT_ID")
 
 	firestoreClient, err = firestore.NewClient(ctx, projectId)
 	if err != nil {
 		log.Printf("Error starting client: %v", err)
 		return
 	}
+
+	jevClient = NewTypesafeClient(typesafeApiKey)
 
 	gmailService, err = initiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
 	if err != nil {
@@ -155,6 +159,8 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
+
+		// shouldUnsub, err =
 
 		// using JEV, validate whether we want to unsubscribe to these emails here
 
