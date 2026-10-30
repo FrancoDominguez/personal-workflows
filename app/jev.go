@@ -70,12 +70,14 @@ func (c *TypesafeClient) typesafeSingleNoulQuestion(ctx context.Context, instruc
 		},
 	)
 	if err != nil {
+		log.Printf("marshaling typesafe request: %v", err)
 		return false, err
 	}
 
 	var req *http.Request
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, c.baseUrl, bytes.NewReader(reqBody))
 	if err != nil {
+		log.Printf("building typesafe request: %v", err)
 		return false, err
 	}
 
@@ -84,18 +86,22 @@ func (c *TypesafeClient) typesafeSingleNoulQuestion(ctx context.Context, instruc
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Printf("calling typesafe: %v", err)
 		return false, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK || (resp.StatusCode >= 500 && resp.StatusCode <= 599) {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return false, fmt.Errorf("typesafe returned %d: %s", resp.StatusCode, b)
+		err = fmt.Errorf("typesafe returned %d: %s", resp.StatusCode, b)
+		log.Printf("%v", err)
+		return false, err
 	}
 
 	var out TypesafeResponse
 	err = json.NewDecoder(resp.Body).Decode(&out)
 	if err != nil {
+		log.Printf("decoding typesafe response: %v", err)
 		return false, err
 	}
 
