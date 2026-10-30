@@ -14,6 +14,14 @@ resource "google_secret_manager_secret" "gmail_client_secret" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_secret_manager_secret" "typesafe_api_key" {
+  secret_id = "typesafe_api_key"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
 resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail_refresh_token" {
   secret_id = google_secret_manager_secret.gmail_refresh_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
@@ -22,6 +30,12 @@ resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail
 
 resource "google_secret_manager_secret_iam_member" "function_runtime_reads_gmail_client_secret" {
   secret_id = google_secret_manager_secret.gmail_client_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.function_runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "function_runtime_reads_typesafe_api_key" {
+  secret_id = google_secret_manager_secret.typesafe_api_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.function_runtime.email}"
 }
