@@ -10,10 +10,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
-	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -45,18 +42,6 @@ func init() {
 	}
 
 	functions.HTTP("autoEmailUnsubscribe", autoEmailUnsubscribe)
-}
-
-func initiateGmailService(ctx context.Context, gmailClientId string, gmailClientSecret string, gmailRefreshToken string) (*gmail.Service, error) {
-	var err error
-	oauthConfig := &oauth2.Config{
-		ClientID:     gmailClientId,
-		ClientSecret: gmailClientSecret,
-		Endpoint:     google.Endpoint,
-	}
-	token := &oauth2.Token{RefreshToken: gmailRefreshToken}
-	gmailService, err = gmail.NewService(ctx, option.WithTokenSource(oauthConfig.TokenSource(ctx, token)))
-	return gmailService, err
 }
 
 func decodeRequestBody(r *http.Request) (*gmailNotification, error) {
@@ -157,7 +142,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
-		log.Printf("Content: %s", textContent)
 		log.Print("===========================================")
 
 		// Updating the content list
