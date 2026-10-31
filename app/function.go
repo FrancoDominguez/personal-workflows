@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +19,7 @@ import (
 var (
 	firestoreClient *firestore.Client
 	gmailService    *gmail.Service
-	jevClient       TypesafeClient
+	typesafeClient       TypesafeClient
 )
 
 func init() {
@@ -37,7 +38,7 @@ func init() {
 		return
 	}
 
-	jevClient = NewTypesafeClient(typesafeApiKey)
+	typesafeClient = NewTypesafeClient(typesafeApiKey)
 
 	gmailService, err = initiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
 	if err != nil {
@@ -115,6 +116,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var textContent string
+		var sender string
 		var subject string
 		var unsub string
 		if msg.Payload.Parts != nil {
@@ -142,13 +144,28 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			if header.Name == "Subject" {
 				subject = header.Value
 			}
+			if header.Name == "From" {
+				sender = header.Value
+			}
 		}
 
+		log.Printf("Sender: %s", sender)
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
 		log.Print("===========================================")
 
-		// Updating the content list
+		// unsub enum handling here
+		unsubType := getUnsubMethod(unsub)
+		if unsubType == unsubUnavailable {
+			log.Printf("unsub unavailable for '%s'", subject)
+			err = setFirestoreItem(ctx, "gmail", "historyId", "historyId", int64(resp.HistoryId))
+			if err != nil {
+				log.Printf("saving cursor: %v", err)
+			}
+			return
+		}
+
+		// Updating the content list for tracking email history
 		contentList, err := getFirestoreItem[[]any](ctx, "gmail", "contentList", "contentList")
 		if err != nil && status.Code(err) != codes.NotFound {
 			return
@@ -160,11 +177,31 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// shouldUnsub, err =
+		// JEV to determine if we should unsub
+		instructions := "should I unsubscribe from this email? I am not interested in marketing products"
+		state := fmt.Sprintf("sender: %s\nsubject: %s\nbody: %s", sender, subject, textContent)
+		cutoff := 0.5
 
-		// using JEV, validate whether we want to unsubscribe to these emails here
+		var shouldUnsub bool
+		shouldUnsub, err = typesafeClient.singleNoulQuestion(ctx, instructions, state, cutoff)
+		if err != nil {
+			log.Printf("asking JEV about message %s: %v", messageId, err)
+			return
+		}
 
-		// do the unsubscribing here
+		log.Printf("JEV's unsubscription assesment: %t", shouldUnsub)
+
+		if unsubType == unsubHttp {
+			log.Print("Unsunscribing with http")
+			// add http unsub handling here
+			return
+		}
+		if unsubType == unsubEmail {
+			log.Print("Unsunscribing with email")
+			// add email unsub handling here
+			return
+		}
+
 	}
 
 	err = setFirestoreItem(ctx, "gmail", "historyId", "historyId", int64(resp.HistoryId))

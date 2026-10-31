@@ -3,6 +3,7 @@ package function
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -27,6 +28,24 @@ type email struct {
 	to      string
 	subject string
 	body    string
+}
+
+type UnsubMethod int
+const (
+	unsubUnavailable UnsubMethod = iota
+	unsubHttp
+	unsubEmail
+)
+
+func getUnsubMethod(unsub string) UnsubMethod {
+	switch {
+	case strings.Contains(unsub, "https://"), strings.Contains(unsub, "http://"):
+		return unsubHttp
+	case strings.Contains(unsub, "mailto:"):
+		return unsubEmail
+	default:
+		return unsubUnavailable
+	}
 }
 
 func initiateGmailService(ctx context.Context, gmailClientId string, gmailClientSecret string, gmailRefreshToken string) (*gmail.Service, error) {

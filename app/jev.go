@@ -25,7 +25,7 @@ func NewTypesafeClient(apiKey string) TypesafeClient {
 	}
 }
 
-type TypesafeQuestino struct {
+type TypesafeQuestion struct {
 	Type         string `json:"type"`
 	Instructions string `json:"instructions"`
 }
@@ -33,7 +33,7 @@ type TypesafeQuestino struct {
 type TypesafeNoulRequest struct {
 	Model     string                 `json:"model"`
 	State     string                 `json:"state"`
-	Questions map[string]TypesafeQuestino `json:"questions"`
+	Questions map[string]TypesafeQuestion `json:"questions"`
 }
 
 type NoulAnswer struct {
@@ -52,7 +52,7 @@ type TypesafeResponse struct {
 	Usage   Usage                 `json:"usage"`
 }
 
-func (c *TypesafeClient) typesafeSingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
+func (c *TypesafeClient) singleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
 	var err error
 	var reqBody []byte
 	questionName := "singleQuestion"
@@ -61,7 +61,7 @@ func (c *TypesafeClient) typesafeSingleNoulQuestion(ctx context.Context, instruc
 		TypesafeNoulRequest{
 			Model: "jev-latest",
 			State: state,
-			Questions: map[string]TypesafeQuestino{
+			Questions: map[string]TypesafeQuestion{
 				fmt.Sprintf("%s", questionName): {
 					Type:         "noul",
 					Instructions: instructions,
