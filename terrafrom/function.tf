@@ -8,11 +8,11 @@ resource "google_cloud_run_v2_service" "function" {
   name     = "my-first-function"
   location = var.region
   template {
-    service_account = google_service_account.function_runtime.email
+    service_account                  = google_service_account.function_runtime.email
     max_instance_request_concurrency = 1
-    timeout = "300s"
+    timeout                          = "300s"
     scaling {
-        max_instance_count = 1
+      max_instance_count = 1
     }
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
