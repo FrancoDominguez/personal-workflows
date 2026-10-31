@@ -30,7 +30,7 @@ func init() {
 	gmailClientId := os.Getenv("GMAIL_CLIENT_ID")
 	gmailClientSecret := os.Getenv("GMAIL_CLIENT_SECRET")
 	gmailRefreshToken := os.Getenv("GMAIL_REFRESH_TOKEN")
-	typesafeApiKey := os.Getenv("GMAIL_CLIENT_ID")
+	typesafeApiKey := os.Getenv("TYPESAFE_API_KEY")
 
 	firestoreClient, err = firestore.NewClient(ctx, projectId)
 	if err != nil {
@@ -158,11 +158,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		unsubType := getUnsubMethod(unsub)
 		if unsubType == unsubUnavailable {
 			log.Printf("unsub unavailable for '%s'", subject)
-			err = setFirestoreItem(ctx, "gmail", "historyId", "historyId", int64(resp.HistoryId))
-			if err != nil {
-				log.Printf("saving cursor: %v", err)
-			}
-			return
+			continue
 		}
 
 		// Updating the content list for tracking email history
@@ -194,12 +190,12 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		if unsubType == unsubHttp {
 			log.Print("Unsunscribing with http")
 			// add http unsub handling here
-			return
+			continue
 		}
 		if unsubType == unsubEmail {
 			log.Print("Unsunscribing with email")
 			// add email unsub handling here
-			return
+			continue
 		}
 
 	}
