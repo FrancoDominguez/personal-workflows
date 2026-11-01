@@ -1,4 +1,4 @@
-package function
+package firestore
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-func getFirestoreItem[T any](ctx context.Context, collection string, document string, field string) (T, error) {
+func GetItem[T any](ctx context.Context, client *firestore.Client, collection string, document string, field string) (T, error) {
 	var err error
 	var result T
 	var snapshot *firestore.DocumentSnapshot
 	var fieldValue any
 	var ErrWrongType = errors.New("found field has wrong type")
 
-	doc := firestoreClient.Collection(collection).Doc(document)
+	doc := client.Collection(collection).Doc(document)
 
 	snapshot, err = doc.Get(ctx)
 	if err != nil {
@@ -30,15 +30,15 @@ func getFirestoreItem[T any](ctx context.Context, collection string, document st
 	}
 	result, ok := fieldValue.(T)
 	if !ok {
-		log.Printf("historyId is not a %T, got %T", result, fieldValue)
+		log.Printf("%s is not a %T, got %T", field, result, fieldValue)
 		return result, ErrWrongType
 	}
 
 	return result, nil
 }
 
-func setFirestoreItem(ctx context.Context, collection string, document string, field string, value any) error {
-	doc := firestoreClient.Collection(collection).Doc(document)
+func SetItem(ctx context.Context, client *firestore.Client, collection string, document string, field string, value any) error {
+	doc := client.Collection(collection).Doc(document)
 
 	_, err := doc.Set(ctx, map[string]any{field: value}, firestore.MergeAll)
 	if err != nil {

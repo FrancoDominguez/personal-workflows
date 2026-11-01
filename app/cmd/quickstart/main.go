@@ -93,7 +93,7 @@ func main() {
 		LabelIds:            []string{"INBOX"},
 		LabelFilterBehavior: "INCLUDE",
 	}).Do()
-	log.Printf("watch request response: %s", res)
+	log.Printf("watch request response: %v", res)
 
 	user := "me"
 	r, err := srv.Users.Labels.List(user).Do()

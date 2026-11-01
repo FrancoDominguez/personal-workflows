@@ -1,4 +1,4 @@
-package function
+package typesafe
 
 import (
 	"bytes"
@@ -11,29 +11,29 @@ import (
 	"time"
 )
 
-type TypesafeClient struct {
+type Client struct {
 	baseUrl    string
 	apiKey     string
 	httpClient *http.Client
 }
 
-func NewTypesafeClient(apiKey string) TypesafeClient {
-	return TypesafeClient{
+func NewClient(apiKey string) Client {
+	return Client{
 		baseUrl:    "https://api.typesafe.ai/v1/systemone",
 		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 20 * time.Second},
 	}
 }
 
-type TypesafeQuestion struct {
+type Question struct {
 	Type         string `json:"type"`
 	Instructions string `json:"instructions"`
 }
 
-type TypesafeNoulRequest struct {
+type NoulRequest struct {
 	Model     string                 `json:"model"`
 	State     string                 `json:"state"`
-	Questions map[string]TypesafeQuestion `json:"questions"`
+	Questions map[string]Question `json:"questions"`
 }
 
 type NoulAnswer struct {
@@ -46,22 +46,22 @@ type Usage struct {
 	OutputTokens int `json:"output_tokens"`
 }
 
-type TypesafeResponse struct {
+type Response struct {
 	Model   string                `json:"model"`
 	Answers map[string]NoulAnswer `json:"answers"`
 	Usage   Usage                 `json:"usage"`
 }
 
-func (c *TypesafeClient) singleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
+func (c *Client) SingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
 	var err error
 	var reqBody []byte
 	questionName := "singleQuestion"
 
 	reqBody, err = json.Marshal(
-		TypesafeNoulRequest{
+		NoulRequest{
 			Model: "jev-latest",
 			State: state,
-			Questions: map[string]TypesafeQuestion{
+			Questions: map[string]Question{
 				fmt.Sprintf("%s", questionName): {
 					Type:         "noul",
 					Instructions: instructions,
@@ -98,7 +98,7 @@ func (c *TypesafeClient) singleNoulQuestion(ctx context.Context, instructions, s
 		return false, err
 	}
 
-	var out TypesafeResponse
+	var out Response
 	err = json.NewDecoder(resp.Body).Decode(&out)
 	if err != nil {
 		log.Printf("decoding typesafe response: %v", err)
