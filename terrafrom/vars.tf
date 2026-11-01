@@ -28,3 +28,8 @@ variable "gcp_client_id" {
   type        = string
   description = "OAuth client id from GCP consent screen (public, not a secret)"
 }
+
+variable "billing_account_id" {
+  type        = string
+  description = "Account ID for billing account"
+}

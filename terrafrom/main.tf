@@ -11,8 +11,10 @@ terraform {
 }
 
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  project               = var.project_id
+  region                = var.region
+  user_project_override = true
+  billing_project       = var.project_id
 }
 
 provider "github" {
@@ -30,7 +32,7 @@ resource "google_project_service" "apis" {
     "secretmanager.googleapis.com",
     "gmail.googleapis.com",
     "firestore.googleapis.com",
-    "firestore.googleapis.com",
+    "billingbudgets.googleapis.com"
   ])
   project            = var.project_id
   service            = each.value
