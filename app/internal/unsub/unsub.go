@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	fs "francodominguez.com/gmail-webhook/app/internal/firestore"
+	"francodominguez.com/gmail-webhook/app/internal/gmailutil"
 	"francodominguez.com/gmail-webhook/app/internal/typesafe"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/gmail/v1"
@@ -23,6 +24,19 @@ var (
 	gmailService    *gmail.Service
 	typesafeClient  typesafe.Client
 )
+
+type pushEnvelope struct {
+	Message struct {
+		Data      []byte `json:"data"`
+		MessageID string `json:"messageId"`
+	} `json:"message"`
+	Subscription string `json:"subscription"`
+}
+
+type gmailNotification struct {
+	EmailAddress string `json:"emailAddress"`
+	HistoryID    uint64 `json:"historyId"`
+}
 
 func init() {
 	ctx := context.Background()
@@ -42,7 +56,7 @@ func init() {
 
 	typesafeClient = typesafe.NewClient(typesafeApiKey)
 
-	gmailService, err = initiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
+	gmailService, err = gmailutil.InitiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
 	if err != nil {
 		log.Printf("Error starting gmail service: %v", err)
 		return
@@ -154,11 +168,10 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Sender: %s", sender)
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
-		log.Print("===========================================")
 
 		// unsub enum handling here
-		unsubType := getUnsubMethod(unsub)
-		if unsubType == unsubUnavailable {
+		unsubType := gmailutil.GetUnsubMethod(unsub)
+		if unsubType == gmailutil.UnsubUnavailable {
 			log.Printf("unsub unavailable for '%s'", subject)
 			continue
 		}
@@ -189,12 +202,12 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("JEV's unsubscription assesment: %t", shouldUnsub)
 
-		if unsubType == unsubHttp {
+		if unsubType == gmailutil.UnsubHttp {
 			log.Print("Unsunscribing with http")
 			// add http unsub handling here
 			continue
 		}
-		if unsubType == unsubEmail {
+		if unsubType == gmailutil.UnsubEmail {
 			log.Print("Unsunscribing with email")
 			// add email unsub handling here
 			continue
@@ -206,4 +219,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("saving cursor: %v", err)
 	}
+
+	log.Print("===========================================")
 }
