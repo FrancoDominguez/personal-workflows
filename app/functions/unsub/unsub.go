@@ -102,6 +102,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		var sender string
 		var subject string
 		var unsub string
+		var oneClick bool
 		if msg.Payload.Parts != nil {
 			for _, part := range msg.Payload.Parts {
 				if part.MimeType == "text/plain" {
@@ -123,6 +124,9 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		for _, header := range msg.Payload.Headers {
 			if header.Name == "List-Unsubscribe" {
 				unsub = header.Value
+			}
+			if header.Name == "List-Unsubscribe-Post" {
+				oneClick = true
 			}
 			if header.Name == "Subject" {
 				subject = header.Value
@@ -169,17 +173,26 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("JEV's unsubscription assesment: %t", shouldUnsub)
 
-		if unsubType == utils.UnsubHttp {
-			log.Print("Unsunscribing with http")
-			// add http unsub handling here
-			continue
-		}
-		if unsubType == utils.UnsubEmail {
-			log.Print("Unsunscribing with email")
-			// add email unsub handling here
+		if !shouldUnsub {
 			continue
 		}
 
+		if unsubType == utils.UnsubHttp {
+			log.Print("Unsubscribing with http")
+			if err := unsubByHttp(ctx, unsub, oneClick); err != nil {
+				log.Printf("http unsubscribe for '%s': %v", subject, err)
+				continue
+			}
+		}
+		if unsubType == utils.UnsubEmail {
+			log.Print("Unsubscribing with email")
+			if err := unsubByEmail(ctx, unsub); err != nil {
+				log.Printf("email unsubscribe for '%s': %v", subject, err)
+				continue
+			}
+		}
+
+		log.Printf("unsubscribed from '%s'", sender)
 	}
 
 	err = utils.SetItem(ctx, firestoreClient, "gmail", "historyId", "historyId", int64(resp.HistoryId))

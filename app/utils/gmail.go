@@ -30,6 +30,19 @@ func GetUnsubMethod(unsub string) UnsubMethod {
 	}
 }
 
+// GetUnsubTarget returns the first target in a List-Unsubscribe header value
+// matching the given method. Targets are angle-bracketed and comma-separated,
+// e.g. <mailto:unsub@example.com>, <https://example.com/unsub>.
+func GetUnsubTarget(unsub string, method UnsubMethod) string {
+	for _, part := range strings.Split(unsub, ",") {
+		target := strings.Trim(strings.TrimSpace(part), "<>")
+		if GetUnsubMethod(target) == method {
+			return target
+		}
+	}
+	return ""
+}
+
 func InitiateGmailService(ctx context.Context, gmailClientId string, gmailClientSecret string, gmailRefreshToken string) (*gmail.Service, error) {
 	oauthConfig := &oauth2.Config{
 		ClientID:     gmailClientId,
