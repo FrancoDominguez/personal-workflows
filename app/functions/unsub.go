@@ -1,4 +1,4 @@
-package unsub
+package functions
 
 import (
 	"context"
@@ -10,9 +10,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/firestore"
-	fs "francodominguez.com/gmail-webhook/app/internal/firestore"
-	"francodominguez.com/gmail-webhook/app/internal/gmailutil"
-	"francodominguez.com/gmail-webhook/app/internal/typesafe"
+	"francodominguez.com/gmail-webhook/app/utils"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/grpc/codes"
@@ -22,7 +20,7 @@ import (
 var (
 	firestoreClient *firestore.Client
 	gmailService    *gmail.Service
-	typesafeClient  typesafe.Client
+	typesafeClient  utils.TypesafeClient
 )
 
 type pushEnvelope struct {
@@ -54,9 +52,9 @@ func init() {
 		return
 	}
 
-	typesafeClient = typesafe.NewClient(typesafeApiKey)
+	typesafeClient = utils.NewTypesafeClient(typesafeApiKey)
 
-	gmailService, err = gmailutil.InitiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
+	gmailService, err = utils.InitiateGmailService(ctx, gmailClientId, gmailClientSecret, gmailRefreshToken)
 	if err != nil {
 		log.Printf("Error starting gmail service: %v", err)
 		return
@@ -95,10 +93,10 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("mailbox %s changed, historyId %d", notif.EmailAddress, notif.HistoryID)
 
-	historyId, err := fs.GetItem[int64](ctx, firestoreClient, "gmail", "historyId", "historyId")
+	historyId, err := utils.GetItem[int64](ctx, firestoreClient, "gmail", "historyId", "historyId")
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			err = fs.SetItem(ctx, firestoreClient, "gmail", "historyId", "historyId", int64(notif.HistoryID))
+			err = utils.SetItem(ctx, firestoreClient, "gmail", "historyId", "historyId", int64(notif.HistoryID))
 			if err != nil {
 				log.Printf("seeding cursor: %v", err)
 			}
@@ -170,20 +168,20 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Unsubcribe address: %s", unsub)
 
 		// unsub enum handling here
-		unsubType := gmailutil.GetUnsubMethod(unsub)
-		if unsubType == gmailutil.UnsubUnavailable {
+		unsubType := utils.GetUnsubMethod(unsub)
+		if unsubType == utils.UnsubUnavailable {
 			log.Printf("unsub unavailable for '%s'", subject)
 			continue
 		}
 
 		// Updating the content list for tracking email history
-		contentList, err := fs.GetItem[[]any](ctx, firestoreClient, "gmail", "contentList", "contentList")
+		contentList, err := utils.GetItem[[]any](ctx, firestoreClient, "gmail", "contentList", "contentList")
 		if err != nil && status.Code(err) != codes.NotFound {
 			return
 		}
 
 		contentList = append(contentList, textContent)
-		err = fs.SetItem(ctx, firestoreClient, "gmail", "contentList", "contentList", contentList)
+		err = utils.SetItem(ctx, firestoreClient, "gmail", "contentList", "contentList", contentList)
 		if err != nil {
 			return
 		}
@@ -202,12 +200,12 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("JEV's unsubscription assesment: %t", shouldUnsub)
 
-		if unsubType == gmailutil.UnsubHttp {
+		if unsubType == utils.UnsubHttp {
 			log.Print("Unsunscribing with http")
 			// add http unsub handling here
 			continue
 		}
-		if unsubType == gmailutil.UnsubEmail {
+		if unsubType == utils.UnsubEmail {
 			log.Print("Unsunscribing with email")
 			// add email unsub handling here
 			continue
@@ -215,7 +213,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	err = fs.SetItem(ctx, firestoreClient, "gmail", "historyId", "historyId", int64(resp.HistoryId))
+	err = utils.SetItem(ctx, firestoreClient, "gmail", "historyId", "historyId", int64(resp.HistoryId))
 	if err != nil {
 		log.Printf("saving cursor: %v", err)
 	}

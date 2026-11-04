@@ -1,4 +1,4 @@
-package typesafe
+package utils
 
 import (
 	"bytes"
@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-type Client struct {
+type TypesafeClient struct {
 	baseUrl    string
 	apiKey     string
 	httpClient *http.Client
 }
 
-func NewClient(apiKey string) Client {
-	return Client{
+func NewTypesafeClient(apiKey string) TypesafeClient {
+	return TypesafeClient{
 		baseUrl:    "https://api.typesafe.ai/v1/systemone",
 		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 20 * time.Second},
@@ -31,8 +31,8 @@ type Question struct {
 }
 
 type NoulRequest struct {
-	Model     string                 `json:"model"`
-	State     string                 `json:"state"`
+	Model     string              `json:"model"`
+	State     string              `json:"state"`
 	Questions map[string]Question `json:"questions"`
 }
 
@@ -52,7 +52,7 @@ type Response struct {
 	Usage   Usage                 `json:"usage"`
 }
 
-func (c *Client) SingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
+func (c *TypesafeClient) SingleNoulQuestion(ctx context.Context, instructions, state string, cutoff float64) (bool, error) {
 	var err error
 	var reqBody []byte
 	questionName := "singleQuestion"

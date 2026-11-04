@@ -1,4 +1,4 @@
-package gmailutil
+package utils
 
 import (
 	"context"
