@@ -13,7 +13,9 @@ import (
 
 func unsubscribe(ctx context.Context, unsub string, oneClick bool) error {
 	var httpErr error
-	if target := utils.GetUnsubHttpTarget(unsub); target != "" {
+
+	target := utils.GetUnsubHttpTarget(unsub)
+	if target != "" {
 		log.Print("Unsubscribing with http")
 		httpErr = unsubByHttp(ctx, target, oneClick)
 		if httpErr == nil {
@@ -22,7 +24,8 @@ func unsubscribe(ctx context.Context, unsub string, oneClick bool) error {
 		log.Printf("http unsubscribe failed: %v", httpErr)
 	}
 
-	if target := utils.GetUnsubEmailTarget(unsub); target != "" {
+	target = utils.GetUnsubEmailTarget(unsub)
+	if target != "" {
 		log.Print("Unsubscribing with email")
 		return unsubByEmail(ctx, target)
 	}

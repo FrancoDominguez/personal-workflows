@@ -173,7 +173,8 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if err := unsubscribe(ctx, unsub, oneClick); err != nil {
+		err = unsubscribe(ctx, unsub, oneClick)
+		if err != nil {
 			log.Printf("unsubscribing from '%s': %v", subject, err)
 			continue
 		}
