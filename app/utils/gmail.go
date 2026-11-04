@@ -11,36 +11,36 @@ import (
 	"google.golang.org/api/option"
 )
 
-type UnsubMethod int
-
-const (
-	UnsubUnavailable UnsubMethod = iota
-	UnsubHttp
-	UnsubEmail
-)
-
-func GetUnsubMethod(unsub string) UnsubMethod {
-	switch {
-	case strings.Contains(unsub, "https://"), strings.Contains(unsub, "http://"):
-		return UnsubHttp
-	case strings.Contains(unsub, "mailto:"):
-		return UnsubEmail
-	default:
-		return UnsubUnavailable
-	}
-}
-
-// GetUnsubTarget returns the first target in a List-Unsubscribe header value
-// matching the given method. Targets are angle-bracketed and comma-separated,
-// e.g. <mailto:unsub@example.com>, <https://example.com/unsub>.
-func GetUnsubTarget(unsub string, method UnsubMethod) string {
+// A List-Unsubscribe header value holds angle-bracketed, comma-separated
+// targets, e.g. <mailto:unsub@example.com>, <https://example.com/unsub>.
+func getUnsubTarget(unsub string, prefixes ...string) string {
 	for _, part := range strings.Split(unsub, ",") {
 		target := strings.Trim(strings.TrimSpace(part), "<>")
-		if GetUnsubMethod(target) == method {
-			return target
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(target, prefix) {
+				return target
+			}
 		}
 	}
 	return ""
+}
+
+// GetUnsubHttpTarget returns the first http(s) target in a List-Unsubscribe
+// header value, or "" if there is none.
+func GetUnsubHttpTarget(unsub string) string {
+	return getUnsubTarget(unsub, "https://", "http://")
+}
+
+// GetUnsubEmailTarget returns the first mailto: target in a List-Unsubscribe
+// header value, or "" if there is none.
+func GetUnsubEmailTarget(unsub string) string {
+	return getUnsubTarget(unsub, "mailto:")
+}
+
+// Unsubable reports whether a List-Unsubscribe header value offers any target
+// we can act on.
+func Unsubable(unsub string) bool {
+	return GetUnsubHttpTarget(unsub) != "" || GetUnsubEmailTarget(unsub) != ""
 }
 
 func InitiateGmailService(ctx context.Context, gmailClientId string, gmailClientSecret string, gmailRefreshToken string) (*gmail.Service, error) {

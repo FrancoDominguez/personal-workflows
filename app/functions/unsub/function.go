@@ -140,9 +140,7 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Subject: %s", subject)
 		log.Printf("Unsubcribe address: %s", unsub)
 
-		// unsub enum handling here
-		unsubType := utils.GetUnsubMethod(unsub)
-		if unsubType == utils.UnsubUnavailable {
+		if !utils.Unsubable(unsub) {
 			log.Printf("unsub unavailable for '%s'", subject)
 			continue
 		}
@@ -177,19 +175,9 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if unsubType == utils.UnsubHttp {
-			log.Print("Unsubscribing with http")
-			if err := unsubByHttp(ctx, unsub, oneClick); err != nil {
-				log.Printf("http unsubscribe for '%s': %v", subject, err)
-				continue
-			}
-		}
-		if unsubType == utils.UnsubEmail {
-			log.Print("Unsubscribing with email")
-			if err := unsubByEmail(ctx, unsub); err != nil {
-				log.Printf("email unsubscribe for '%s': %v", subject, err)
-				continue
-			}
+		if err := unsubscribe(ctx, unsub, oneClick); err != nil {
+			log.Printf("unsubscribing from '%s': %v", subject, err)
+			continue
 		}
 
 		log.Printf("unsubscribed from '%s'", sender)
