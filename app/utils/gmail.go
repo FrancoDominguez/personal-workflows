@@ -25,20 +25,14 @@ func getUnsubTarget(unsub string, prefixes ...string) string {
 	return ""
 }
 
-// GetUnsubHttpTarget returns the first http(s) target in a List-Unsubscribe
-// header value, or "" if there is none.
 func GetUnsubHttpTarget(unsub string) string {
 	return getUnsubTarget(unsub, "https://", "http://")
 }
 
-// GetUnsubEmailTarget returns the first mailto: target in a List-Unsubscribe
-// header value, or "" if there is none.
 func GetUnsubEmailTarget(unsub string) string {
 	return getUnsubTarget(unsub, "mailto:")
 }
 
-// Unsubable reports whether a List-Unsubscribe header value offers any target
-// we can act on.
 func Unsubable(unsub string) bool {
 	return GetUnsubHttpTarget(unsub) != "" || GetUnsubEmailTarget(unsub) != ""
 }

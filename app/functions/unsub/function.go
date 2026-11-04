@@ -145,7 +145,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Updating the content list for tracking email history
 		contentList, err := utils.GetItem[[]any](ctx, firestoreClient, "gmail", "contentList", "contentList")
 		if err != nil && status.Code(err) != codes.NotFound {
 			return
@@ -157,7 +156,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// JEV to determine if we should unsub
 		instructions := "should I unsubscribe from this email? I am not interested in marketing products"
 		state := fmt.Sprintf("sender: %s\nsubject: %s\nbody: %s", sender, subject, textContent)
 		cutoff := 0.5

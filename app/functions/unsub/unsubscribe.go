@@ -11,8 +11,6 @@ import (
 	"francodominguez.com/gmail-webhook/app/utils"
 )
 
-// unsubscribe acts on a List-Unsubscribe header value, preferring the http
-// target and falling back to the mailto: target if http fails or is absent.
 func unsubscribe(ctx context.Context, unsub string, oneClick bool) error {
 	var httpErr error
 	if target := utils.GetUnsubHttpTarget(unsub); target != "" {
@@ -32,13 +30,11 @@ func unsubscribe(ctx context.Context, unsub string, oneClick bool) error {
 	return httpErr
 }
 
-// unsubByHttp calls the unsubscribe URL. When the message also carried a
-// List-Unsubscribe-Post header it uses the one-click POST from RFC 8058;
-// otherwise it falls back to a plain GET.
 func unsubByHttp(ctx context.Context, target string, oneClick bool) error {
 	var req *http.Request
 	var err error
 	if oneClick {
+		// one-click POST body required by RFC 8058
 		body := strings.NewReader("List-Unsubscribe=One-Click")
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, target, body)
 		if err != nil {
@@ -64,8 +60,6 @@ func unsubByHttp(ctx context.Context, target string, oneClick bool) error {
 	return nil
 }
 
-// unsubByEmail sends an unsubscribe email to a mailto: target, honouring an
-// optional ?subject= query.
 func unsubByEmail(ctx context.Context, target string) error {
 	u, err := url.Parse(target)
 	if err != nil {
