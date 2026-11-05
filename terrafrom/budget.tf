@@ -4,7 +4,7 @@ data "google_project" "project" {
 
 resource "google_billing_budget" "monthly" {
   billing_account = var.billing_account_id
-  display_name    = "gmail-webhook monthly budget"
+  display_name    = "personal-workflows monthly budget"
 
   budget_filter {
     projects = ["projects/${data.google_project.project.number}"]

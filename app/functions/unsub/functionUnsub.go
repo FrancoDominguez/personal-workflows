@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/firestore"
-	"francodominguez.com/gmail-webhook/app/utils"
+	"francodominguez.com/personal-workflows/app/utils"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/grpc/codes"

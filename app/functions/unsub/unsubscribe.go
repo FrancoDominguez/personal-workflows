@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"francodominguez.com/gmail-webhook/app/utils"
+	"francodominguez.com/personal-workflows/app/utils"
 )
 
 func unsubscribe(ctx context.Context, unsub string, oneClick bool) error {
