@@ -2,7 +2,6 @@ package igfollowers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,8 +12,6 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
-// follower is both the shape extracted from Instagram's API response and the
-// schema of the entries stored in the instagram/followers Firestore document.
 type follower struct {
 	ID       string `firestore:"id" json:"id"`
 	Username string `firestore:"username" json:"username"`
@@ -37,8 +34,6 @@ func init() {
 	}
 }
 
-// reportFailure logs the error, alerts Slack (this runs on a schedule, so a
-// log line alone would never be seen), and returns a 500 to the caller.
 func reportFailure(ctx context.Context, w http.ResponseWriter, webhookUrl string, message string, err error) {
 	log.Printf("%s: %v", message, err)
 	if webhookUrl != "" {
@@ -86,6 +81,7 @@ func fetchIgFollowers(w http.ResponseWriter, r *http.Request) {
 		reportFailure(ctx, w, webhookUrl, "loading stored followers from firestore", err)
 		return
 	}
+
 	previous := []follower{}
 	for _, item := range storedList {
 		fields := item.(map[string]any)
@@ -96,13 +92,11 @@ func fetchIgFollowers(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	added, removed := diffFollowers(previous, current)
+	_, removed := diffFollowers(previous, current)
 
 	if len(removed) > 0 {
 		err = utils.SendSlackMessage(ctx, webhookUrl, unfollowMessage(removed))
 		if err != nil {
-			// Keep the old baseline: the next run re-detects these
-			// unfollowers and retries the notification.
 			reportFailure(ctx, w, webhookUrl, "sending unfollow message to slack", err)
 			return
 		}
@@ -110,24 +104,11 @@ func fetchIgFollowers(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.SetItem(ctx, firestoreClient, "instagram", "followers", "followers", current)
 	if err != nil {
-		reportFailure(ctx, w, webhookUrl, "storing followers in firestore", err)
+		log.Printf("storing followers in firestore: %v", err)
 		return
-	}
-
-	log.Printf("fetched %d followers (%d new, %d lost)", len(current), len(added), len(removed))
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(map[string]any{
-		"count": len(current),
-		"new":   usernames(added),
-		"lost":  usernames(removed),
-	})
-	if err != nil {
-		log.Printf("encoding response: %v", err)
 	}
 }
 
-// diffFollowers compares by ID: usernames can change, the numeric ID can't.
 func diffFollowers(previous []follower, current []follower) ([]follower, []follower) {
 	previousIDs := map[string]bool{}
 	for _, f := range previous {
@@ -163,12 +144,4 @@ func unfollowMessage(removed []follower) string {
 		}
 	}
 	return message
-}
-
-func usernames(followers []follower) []string {
-	names := []string{}
-	for _, f := range followers {
-		names = append(names, f.Username)
-	}
-	return names
 }
