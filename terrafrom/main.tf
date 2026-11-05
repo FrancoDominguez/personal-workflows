@@ -24,6 +24,7 @@ provider "github" {
 resource "google_project_service" "apis" {
   for_each = toset([
     "run.googleapis.com",
+    # "compute.googleapis.com", # uncomment when migrating teams-presence (see teams-presence.tf.disabled)
     "artifactregistry.googleapis.com",
     "pubsub.googleapis.com",
     "iamcredentials.googleapis.com",
