@@ -23,6 +23,8 @@ var (
 )
 
 func init() {
+	functions.HTTP("autoEmailUnsubscribe", autoEmailUnsubscribe)
+
 	ctx := context.Background()
 	var err error
 
@@ -45,8 +47,6 @@ func init() {
 		log.Printf("Error starting gmail service: %v", err)
 		return
 	}
-
-	functions.HTTP("autoEmailUnsubscribe", autoEmailUnsubscribe)
 }
 
 func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {

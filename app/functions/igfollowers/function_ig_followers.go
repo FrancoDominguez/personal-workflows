@@ -21,28 +21,17 @@ type follower struct {
 var firestoreClient *firestore.Client
 
 func init() {
+	functions.HTTP("fetchIgFollowers", fetchIgFollowers)
+
 	ctx := context.Background()
 	var err error
-
 	projectId := os.Getenv("PROJECT_ID")
 
-	functions.HTTP("fetchIgFollowers", fetchIgFollowers)
 	firestoreClient, err = firestore.NewClient(ctx, projectId)
 	if err != nil {
 		log.Printf("Error starting client: %v", err)
 		return
 	}
-}
-
-func reportFailure(ctx context.Context, w http.ResponseWriter, webhookUrl string, message string, err error) {
-	log.Printf("%s: %v", message, err)
-	if webhookUrl != "" {
-		slackErr := utils.SendSlackMessage(ctx, webhookUrl, fmt.Sprintf("IG followers job failed — %s: %v", message, err))
-		if slackErr != nil {
-			log.Printf("sending failure alert to slack: %v", slackErr)
-		}
-	}
-	http.Error(w, message, http.StatusInternalServerError)
 }
 
 func fetchIgFollowers(w http.ResponseWriter, r *http.Request) {
@@ -144,4 +133,15 @@ func unfollowMessage(removed []follower) string {
 		}
 	}
 	return message
+}
+
+func reportFailure(ctx context.Context, w http.ResponseWriter, webhookUrl string, message string, err error) {
+	log.Printf("%s: %v", message, err)
+	if webhookUrl != "" {
+		slackErr := utils.SendSlackMessage(ctx, webhookUrl, fmt.Sprintf("IG followers job failed — %s: %v", message, err))
+		if slackErr != nil {
+			log.Printf("sending failure alert to slack: %v", slackErr)
+		}
+	}
+	http.Error(w, message, http.StatusInternalServerError)
 }
