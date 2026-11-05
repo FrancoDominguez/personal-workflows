@@ -7,8 +7,9 @@ app/                    Go module (francodominguez.com/gmail-webhook/app)
   function.go           root stub — blank-imports each function package below
   functions/
     unsub/              one folder per Cloud Run function, package named after it
-      unsub.go          handler + functions.HTTP registration
-      envelope.go       per-function helpers: separate files, same package, unexported
+      function.go       handler + functions.HTTP registration
+      unsubscribe.go    the function's core logic, named after what it does
+      envelope.go       other helpers: separate files, same package, unexported
   utils/                package utils — code shared by more than one function
   cmd/                  regular binaries (package main): local server, oauth quickstart,
                         and any future workload that is NOT a function (e.g. VM jobs)
@@ -18,10 +19,12 @@ docs/                   decisions and notes like this one
 
 ## Rules
 
-- **One folder per function** under `functions/`. The folder is its own package;
-  the handler file carries the function's name, helpers live in sibling files in
-  the same package, unexported. Other functions cannot reach them — that privacy
-  is the point.
+- **One folder per function** under `functions/`. The folder is its own package.
+  The handler + registration file is always `function.go` (unless that ever causes
+  a problem); the core logic lives in a file named after what it does
+  (`unsubscribe.go` — don't reuse a file name that existed before in the folder,
+  it confuses git rename detection); further helpers are sibling files. Everything is unexported — other functions
+  cannot reach any of it, and that privacy is the point.
 - **Adding a function** = new folder under `functions/` + one blank-import line in
   `app/function.go`. The root stub exists because the GCF buildpack only imports
   the module root (`pack build --path ./app` in CI); a function whose `init()`

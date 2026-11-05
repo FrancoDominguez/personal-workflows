@@ -11,23 +11,30 @@ import (
 	"google.golang.org/api/option"
 )
 
-type UnsubMethod int
-
-const (
-	UnsubUnavailable UnsubMethod = iota
-	UnsubHttp
-	UnsubEmail
-)
-
-func GetUnsubMethod(unsub string) UnsubMethod {
-	switch {
-	case strings.Contains(unsub, "https://"), strings.Contains(unsub, "http://"):
-		return UnsubHttp
-	case strings.Contains(unsub, "mailto:"):
-		return UnsubEmail
-	default:
-		return UnsubUnavailable
+// A List-Unsubscribe header value holds angle-bracketed, comma-separated
+// targets, e.g. <mailto:unsub@example.com>, <https://example.com/unsub>.
+func getUnsubTarget(unsub string, prefixes ...string) string {
+	for _, part := range strings.Split(unsub, ",") {
+		target := strings.Trim(strings.TrimSpace(part), "<>")
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(target, prefix) {
+				return target
+			}
+		}
 	}
+	return ""
+}
+
+func GetUnsubHttpTarget(unsub string) string {
+	return getUnsubTarget(unsub, "https://", "http://")
+}
+
+func GetUnsubEmailTarget(unsub string) string {
+	return getUnsubTarget(unsub, "mailto:")
+}
+
+func Unsubable(unsub string) bool {
+	return GetUnsubHttpTarget(unsub) != "" || GetUnsubEmailTarget(unsub) != ""
 }
 
 func InitiateGmailService(ctx context.Context, gmailClientId string, gmailClientSecret string, gmailRefreshToken string) (*gmail.Service, error) {
