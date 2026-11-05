@@ -10,3 +10,4 @@ client_secret*
 credentials.json
 token.json
 scripts.sh
+terraform.tfstate*
