@@ -29,7 +29,9 @@ const (
 
 type followersPage struct {
 	Users []struct {
+		Pk       string `json:"pk"`
 		Username string `json:"username"`
+		FullName string `json:"full_name"`
 	} `json:"users"`
 	NextMaxID string `json:"next_max_id"`
 	Status    string `json:"status"`
@@ -38,10 +40,10 @@ type followersPage struct {
 // fetchAllFollowers pages through the follower list until Instagram stops
 // returning a next_max_id cursor. Instagram serves ~25 users per page no
 // matter what count asks for, so the full list takes multiple requests.
-func fetchAllFollowers(ctx context.Context, sessionID, csrfToken string) ([]string, error) {
+func fetchAllFollowers(ctx context.Context, sessionID, csrfToken string) ([]follower, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
 
-	var usernames []string
+	var followers []follower
 	maxID := ""
 	for {
 		page, err := fetchPage(ctx, client, sessionID, csrfToken, maxID)
@@ -50,7 +52,11 @@ func fetchAllFollowers(ctx context.Context, sessionID, csrfToken string) ([]stri
 		}
 
 		for _, user := range page.Users {
-			usernames = append(usernames, user.Username)
+			followers = append(followers, follower{
+				ID:       user.Pk,
+				Username: user.Username,
+				FullName: user.FullName,
+			})
 		}
 
 		if page.NextMaxID == "" {
@@ -62,7 +68,7 @@ func fetchAllFollowers(ctx context.Context, sessionID, csrfToken string) ([]stri
 		time.Sleep(time.Second)
 	}
 
-	return usernames, nil
+	return followers, nil
 }
 
 func fetchPage(ctx context.Context, client *http.Client, sessionID, csrfToken, maxID string) (*followersPage, error) {
@@ -125,6 +131,12 @@ func fetchPage(ctx context.Context, client *http.Client, sessionID, csrfToken, m
 	var page followersPage
 	if err := json.Unmarshal(body, &page); err != nil {
 		return nil, fmt.Errorf("parsing response (got HTML? session likely expired): %w", err)
+	}
+
+	// Errors can arrive as well-formed 200 JSON, e.g.
+	// {"message": "login_required", "status": "fail"}.
+	if page.Status != "ok" {
+		return nil, fmt.Errorf("instagram returned status %q: %.200s", page.Status, body)
 	}
 
 	return &page, nil
