@@ -4,5 +4,6 @@
 package function
 
 import (
-	_ "francodominguez.com/gmail-webhook/app/functions/unsub" // registers autoEmailUnsubscribe
+	_ "francodominguez.com/personal-workflows/app/functions/igfollowers" // registers fetchIgFollowers
+	_ "francodominguez.com/personal-workflows/app/functions/unsub"       // registers autoEmailUnsubscribe
 )

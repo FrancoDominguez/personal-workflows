@@ -4,8 +4,8 @@ resource "google_service_account" "function_runtime" {
   depends_on   = [google_project_service.apis]
 }
 
-resource "google_cloud_run_v2_service" "function" {
-  name     = "my-first-function"
+resource "google_cloud_run_v2_service" "unsub" {
+  name     = "unsub"
   location = var.region
   template {
     service_account                  = google_service_account.function_runtime.email
@@ -19,6 +19,12 @@ resource "google_cloud_run_v2_service" "function" {
       env {
         name  = "PROJECT_ID"
         value = var.project_id
+      }
+      # The functions-framework reads this at runtime to pick which registered
+      # function to serve, so the same app image works for every function.
+      env {
+        name  = "FUNCTION_TARGET"
+        value = "autoEmailUnsubscribe"
       }
       env {
         name = "GMAIL_REFRESH_TOKEN"
@@ -73,8 +79,8 @@ resource "google_service_account_iam_member" "ci_acts_as_runtime" {
 
 resource "google_cloud_run_v2_service_iam_member" "me_invoker" {
   project  = var.project_id
-  location = google_cloud_run_v2_service.function.location
-  name     = google_cloud_run_v2_service.function.name
+  location = google_cloud_run_v2_service.unsub.location
+  name     = google_cloud_run_v2_service.unsub.name
   role     = "roles/run.invoker"
   member   = "user:${var.test_user_account_email}"
 }

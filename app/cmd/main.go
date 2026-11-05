@@ -1,10 +1,13 @@
+// This is the real production entrypoint: the buildpack compiles it because
+// GOOGLE_BUILDABLE points here. Importing the root package registers every
+// function; funcframework then serves the one named by FUNCTION_TARGET.
 package main
 
 import (
 	"log"
 	"os"
 
-	_ "francodominguez.com/gmail-webhook/app"
+	_ "francodominguez.com/personal-workflows/app"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )

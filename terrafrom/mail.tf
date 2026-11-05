@@ -19,8 +19,8 @@ resource "google_service_account" "pubsub_pusher" {
 
 resource "google_cloud_run_v2_service_iam_member" "pubsub_invoker" {
   project  = var.project_id
-  location = google_cloud_run_v2_service.function.location
-  name     = google_cloud_run_v2_service.function.name
+  location = google_cloud_run_v2_service.unsub.location
+  name     = google_cloud_run_v2_service.unsub.name
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.pubsub_pusher.email}"
 }
@@ -30,7 +30,7 @@ resource "google_pubsub_subscription" "gmail_push" {
   topic = google_pubsub_topic.gmail.id
 
   push_config {
-    push_endpoint = "${google_cloud_run_v2_service.function.uri}/webhook" # whatever route your Go app handles
+    push_endpoint = "${google_cloud_run_v2_service.unsub.uri}/webhook" # whatever route your Go app handles
 
     oidc_token {
       service_account_email = google_service_account.pubsub_pusher.email
