@@ -39,3 +39,17 @@ resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_typesafe
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.unsub_runtime.email}"
 }
+
+resource "google_secret_manager_secret" "slack_signing_secret" {
+  secret_id = "slack_signing_secret"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_secret_manager_secret_iam_member" "slack_signing_secret" {
+  secret_id = google_secret_manager_secret.slack_signing_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.run_runtime.email}"
+}
