@@ -13,7 +13,8 @@ app/                    Go module (francodominguez.com/gmail-webhook/app)
   utils/                package utils — code shared by more than one function
   cmd/                  regular binaries (package main): local server, oauth quickstart,
                         and any future workload that is NOT a function (e.g. VM jobs)
-terrafrom/              all infrastructure
+terraform/              all infrastructure (one service_<name>.tf per Cloud Run
+                        function, each with its own runtime service account)
 docs/                   decisions and notes like this one
 ```
 
