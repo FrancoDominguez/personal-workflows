@@ -52,12 +52,18 @@ func run(w http.ResponseWriter, r *http.Request) {
 
 	action := strings.ToLower(strings.TrimSpace(form.Get("text")))
 	actionResponse, err := runAction(r.Context(), action)
+	if err != nil {
+		log.Printf("action %q failed: %v", action, err)
+		reply(w, "Something went wrong running "+action+".")
+		return
+	}
 
 	log.Printf("action response: %s", actionResponse)
+	reply(w, actionResponse)
 }
 
 func runAction(ctx context.Context, action string) (string, error) {
-	return "", nil
+	return "action response", nil
 }
 
 // reply answers the slash command. Always send a 200: Slack shows any other
