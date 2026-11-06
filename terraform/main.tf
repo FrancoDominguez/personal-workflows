@@ -33,9 +33,15 @@ resource "google_project_service" "apis" {
     "secretmanager.googleapis.com",
     "gmail.googleapis.com",
     "firestore.googleapis.com",
-    "billingbudgets.googleapis.com"
+    "billingbudgets.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ])
   project            = var.project_id
   service            = each.value
   disable_on_destroy = true
+}
+
+moved {
+  from = google_project_service.cloudscheduler
+  to   = google_project_service.apis["cloudscheduler.googleapis.com"]
 }

@@ -1,9 +1,3 @@
-resource "google_project_service" "cloudscheduler" {
-  project            = var.project_id
-  service            = "cloudscheduler.googleapis.com"
-  disable_on_destroy = true
-}
-
 # Dedicated runtime identity for igfollowers, so it doesn't share unsub's
 # function-runtime account (which can read the Gmail and Typesafe secrets).
 # igfollowers only needs Firestore: it reads its Slack webhook + Instagram
@@ -88,5 +82,5 @@ resource "google_cloud_scheduler_job" "igfollowers_weekly" {
     }
   }
 
-  depends_on = [google_project_service.cloudscheduler]
+  depends_on = [google_project_service.apis]
 }
