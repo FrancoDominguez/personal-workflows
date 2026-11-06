@@ -39,8 +39,6 @@ resource "google_cloud_run_v2_service" "igfollowers" {
         name  = "PROJECT_ID"
         value = var.project_id
       }
-      # The functions-framework reads this at runtime to pick which registered
-      # function to serve, so the same app image works for every function.
       env {
         name  = "FUNCTION_TARGET"
         value = "fetchIgFollowers"
