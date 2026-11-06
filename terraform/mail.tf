@@ -48,9 +48,3 @@ resource "google_firestore_database" "database" {
   type        = "FIRESTORE_NATIVE"
   depends_on  = [google_project_service.apis]
 }
-
-resource "google_project_iam_member" "function_uses_firestore" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${google_service_account.function_runtime.email}"
-}
