@@ -48,8 +48,8 @@ resource "google_secret_manager_secret" "slack_signing_secret" {
   depends_on = [google_project_service.apis]
 }
 
-resource "google_secret_manager_secret_iam_member" "slack_signing_secret" {
+resource "google_secret_manager_secret_iam_member" "slack_command_runtime_reads_slack_signing_secret" {
   secret_id = google_secret_manager_secret.slack_signing_secret.secret_id
   role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.run_runtime.email}"
+  member    = "serviceAccount:${google_service_account.slack_command_runtime.email}"
 }

@@ -1,4 +1,4 @@
-package runFunction
+package slackcommand
 
 import (
 	"crypto/hmac"

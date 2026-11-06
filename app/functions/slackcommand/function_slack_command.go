@@ -1,4 +1,4 @@
-package runFunction
+package slackcommand
 
 import (
 	"context"
@@ -15,10 +15,10 @@ import (
 )
 
 func init() {
-	functions.HTTP("run", run)
+	functions.HTTP("slackCommand", slackCommand)
 }
 
-func run(w http.ResponseWriter, r *http.Request) {
+func slackCommand(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 	if err != nil {
 		http.Error(w, "could not read body", http.StatusBadRequest)

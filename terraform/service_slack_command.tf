@@ -1,21 +1,21 @@
-resource "google_service_account" "run_runtime" {
-  account_id   = "run-runtime"
-  display_name = "Run Runtime"
+resource "google_service_account" "slack_command_runtime" {
+  account_id   = "slack-command-runtime"
+  display_name = "Slack Command Runtime"
   depends_on   = [google_project_service.apis]
 }
 
-resource "google_service_account_iam_member" "ci_acts_as_run_runtime" {
-  service_account_id = google_service_account.run_runtime.name
+resource "google_service_account_iam_member" "ci_acts_as_slack_command_runtime" {
+  service_account_id = google_service_account.slack_command_runtime.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.ci.email}"
 }
 
-resource "google_cloud_run_v2_service" "run" {
-  name     = "run"
+resource "google_cloud_run_v2_service" "slack_command" {
+  name     = "slack-command"
   location = var.region
-  ingress = "INGRESS_TRAFFIC_ALL"
+  ingress  = "INGRESS_TRAFFIC_ALL"
   template {
-    service_account                  = google_service_account.run_runtime.email
+    service_account = google_service_account.slack_command_runtime.email
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
       env {
@@ -24,7 +24,7 @@ resource "google_cloud_run_v2_service" "run" {
       }
       env {
         name  = "FUNCTION_TARGET"
-        value = "run"
+        value = "slackCommand"
       }
       env {
         name = "SLACK_SIGNING_SECRET"
@@ -47,16 +47,16 @@ resource "google_cloud_run_v2_service" "run" {
   depends_on = [google_project_service.apis]
 }
 
-resource "google_cloud_run_v2_service_iam_member" "run_public_invoker" {
+resource "google_cloud_run_v2_service_iam_member" "slack_command_public_invoker" {
   project  = var.project_id
-  location = google_cloud_run_v2_service.run.location
-  name     = google_cloud_run_v2_service.run.name
+  location = google_cloud_run_v2_service.slack_command.location
+  name     = google_cloud_run_v2_service.slack_command.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
 
 # Paste this as the Request URL of the slash command in the Slack app config.
-output "run_slack_request_url" {
-  value       = google_cloud_run_v2_service.run.uri
-  description = "Public URL of the run service, for the Slack slash command"
+output "slack_command_request_url" {
+  value       = google_cloud_run_v2_service.slack_command.uri
+  description = "Public URL of the slack-command service, for the Slack slash command"
 }

@@ -4,7 +4,7 @@
 package function
 
 import (
-	_ "francodominguez.com/personal-workflows/app/functions/igfollowers" // registers fetchIgFollowers
-	_ "francodominguez.com/personal-workflows/app/functions/runFunction" // registers autoEmailUnsubscribe
-	_ "francodominguez.com/personal-workflows/app/functions/unsub"       // registers autoEmailUnsubscribe
+	_ "francodominguez.com/personal-workflows/app/functions/igfollowers"  // registers fetchIgFollowers
+	_ "francodominguez.com/personal-workflows/app/functions/slackcommand" // registers slackCommand
+	_ "francodominguez.com/personal-workflows/app/functions/unsub"        // registers autoEmailUnsubscribe
 )
