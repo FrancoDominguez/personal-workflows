@@ -1,14 +1,24 @@
-resource "google_service_account" "function_runtime" {
-  account_id   = "function-runtime"
-  display_name = "Function Runtime"
+# Dedicated runtime identity for unsub. Every Cloud Run service gets its own
+# service account, granted only what that service uses: here the Gmail and
+# Typesafe secrets (secrets.tf) and Firestore for the Gmail history id.
+resource "google_service_account" "unsub_runtime" {
+  account_id   = "unsub-runtime"
+  display_name = "Unsub Runtime"
   depends_on   = [google_project_service.apis]
+}
+
+# Firestore IAM can't be scoped below the database, so this is project-wide.
+resource "google_project_iam_member" "unsub_runtime_uses_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.unsub_runtime.email}"
 }
 
 resource "google_cloud_run_v2_service" "unsub" {
   name     = "unsub"
   location = var.region
   template {
-    service_account                  = google_service_account.function_runtime.email
+    service_account                  = google_service_account.unsub_runtime.email
     max_instance_request_concurrency = 1
     timeout                          = "300s"
     scaling {
@@ -71,8 +81,9 @@ resource "google_project_iam_member" "ci_run_developer" {
   member  = "serviceAccount:${google_service_account.ci.email}"
 }
 
-resource "google_service_account_iam_member" "ci_acts_as_runtime" {
-  service_account_id = google_service_account.function_runtime.name
+# CI's `gcloud run deploy unsub` must be able to act as the runtime SA.
+resource "google_service_account_iam_member" "ci_acts_as_unsub_runtime" {
+  service_account_id = google_service_account.unsub_runtime.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.ci.email}"
 }

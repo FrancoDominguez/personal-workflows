@@ -1,5 +1,5 @@
 # Dedicated runtime identity for igfollowers, so it doesn't share unsub's
-# function-runtime account (which can read the Gmail and Typesafe secrets).
+# unsub-runtime account (which can read the Gmail and Typesafe secrets).
 # igfollowers only needs Firestore: it reads its Slack webhook + Instagram
 # tokens and writes the follower list there.
 resource "google_service_account" "igfollowers_runtime" {
@@ -9,7 +9,7 @@ resource "google_service_account" "igfollowers_runtime" {
 }
 
 # Firestore IAM can't be scoped below the database, so this is project-wide
-# datastore access — still far narrower than function-runtime's grants.
+# datastore access — still far narrower than unsub-runtime's grants.
 resource "google_project_iam_member" "igfollowers_runtime_uses_firestore" {
   project = var.project_id
   role    = "roles/datastore.user"
