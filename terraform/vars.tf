@@ -33,3 +33,8 @@ variable "billing_account_id" {
   type        = string
   description = "Account ID for billing account"
 }
+
+variable "slack_allowed_user_id" {
+  type        = string
+  description = "Slack member ID (U…) allowed to use the /run command. Slack profile → ⋮ → Copy member ID"
+}
