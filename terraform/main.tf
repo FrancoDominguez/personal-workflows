@@ -40,8 +40,3 @@ resource "google_project_service" "apis" {
   service            = each.value
   disable_on_destroy = true
 }
-
-moved {
-  from = google_project_service.cloudscheduler
-  to   = google_project_service.apis["cloudscheduler.googleapis.com"]
-}
