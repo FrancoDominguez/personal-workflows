@@ -4,11 +4,36 @@ resource "google_project_service" "cloudscheduler" {
   disable_on_destroy = true
 }
 
+# Dedicated runtime identity for igfollowers, so it doesn't share unsub's
+# function-runtime account (which can read the Gmail and Typesafe secrets).
+# igfollowers only needs Firestore: it reads its Slack webhook + Instagram
+# tokens and writes the follower list there.
+resource "google_service_account" "igfollowers_runtime" {
+  account_id   = "igfollowers-runtime"
+  display_name = "IG Followers Runtime"
+  depends_on   = [google_project_service.apis]
+}
+
+# Firestore IAM can't be scoped below the database, so this is project-wide
+# datastore access — still far narrower than function-runtime's grants.
+resource "google_project_iam_member" "igfollowers_runtime_uses_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.igfollowers_runtime.email}"
+}
+
+# CI's `gcloud run deploy igfollowers` must be able to act as the runtime SA.
+resource "google_service_account_iam_member" "ci_acts_as_igfollowers_runtime" {
+  service_account_id = google_service_account.igfollowers_runtime.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.ci.email}"
+}
+
 resource "google_cloud_run_v2_service" "igfollowers" {
   name     = "igfollowers"
   location = var.region
   template {
-    service_account                  = google_service_account.function_runtime.email
+    service_account                  = google_service_account.igfollowers_runtime.email
     max_instance_request_concurrency = 1
     timeout                          = "300s"
     scaling {
