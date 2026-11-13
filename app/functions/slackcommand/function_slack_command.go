@@ -3,6 +3,7 @@ package slackcommand
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"google.golang.org/api/idtoken"
 )
 
 func init() {
@@ -63,15 +65,48 @@ func slackCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 func runAction(ctx context.Context, action string) (string, error) {
+	switch action {
+	case "igfollowers":
+		triggerIgFollowers(ctx)
+		// post request to gcloud run function that triggers workflow that compares ig followers
+
+	}
+
 	return "action response", nil
 }
 
-// reply answers the slash command. Always send a 200: Slack shows any other
-// status as a generic error and drops the text.
 func reply(w http.ResponseWriter, text string) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"response_type": "ephemeral", // only you see it; "in_channel" posts publicly
+		"response_type": "ephemeral",
 		"text":          text,
 	})
+}
+
+func triggerIgFollowers(ctx context.Context) (string, error) {
+	target := os.Getenv("IGFOLLOWERS_URL")
+
+	// Audience == the Cloud Run URL. Cloud Run rejects tokens minted for anything else.
+	client, err := idtoken.NewClient(ctx, target)
+	if err != nil {
+		return "", fmt.Errorf("creating id token client: %w", err)
+	}
+	client.Timeout = 2 * time.Second // see the Slack 3s note below
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, target, nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("calling igfollowers: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
+	if resp.StatusCode/100 != 2 {
+		return "", fmt.Errorf("igfollowers returned %d: %s", resp.StatusCode, body)
+	}
+	return string(body), nil
 }

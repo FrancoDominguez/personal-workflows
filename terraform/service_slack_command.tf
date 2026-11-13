@@ -39,6 +39,10 @@ resource "google_cloud_run_v2_service" "slack_command" {
         name  = "SLACK_ALLOWED_USER_ID"
         value = var.slack_allowed_user_id
       }
+      env {
+        name  = "IGFOLLOWERS_URL"
+        value = google_cloud_run_v2_service.igfollowers.uri
+      }
     }
   }
   lifecycle {

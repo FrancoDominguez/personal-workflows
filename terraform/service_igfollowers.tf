@@ -65,6 +65,14 @@ resource "google_cloud_run_v2_service_iam_member" "igfollowers_scheduler_invoker
   member   = "serviceAccount:${google_service_account.igfollowers_scheduler.email}"
 }
 
+resource "google_cloud_run_v2_service_iam_member" "igfollowers_slack_command_invoker" {
+  project  = var.project_id
+  location = google_cloud_run_v2_service.igfollowers.location
+  name     = google_cloud_run_v2_service.igfollowers.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.slack_command_runtime.email}"
+}
+
 resource "google_cloud_scheduler_job" "igfollowers_weekly" {
   name      = "igfollowers-weekly"
   region    = var.region
