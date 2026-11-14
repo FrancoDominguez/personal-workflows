@@ -10,6 +10,14 @@ resource "google_service_account_iam_member" "ci_acts_as_slack_command_runtime" 
   member             = "serviceAccount:${google_service_account.ci.email}"
 }
 
+# Lets the service force-run Cloud Scheduler jobs. Cloud Scheduler has no
+# per-job IAM, so this is project-wide; igfollowers-weekly is the only job.
+resource "google_project_iam_member" "slack_command_runs_scheduler_jobs" {
+  project = var.project_id
+  role    = "roles/cloudscheduler.jobRunner"
+  member  = "serviceAccount:${google_service_account.slack_command_runtime.email}"
+}
+
 resource "google_cloud_run_v2_service" "slack_command" {
   name     = "slack-command"
   location = var.region
@@ -40,8 +48,11 @@ resource "google_cloud_run_v2_service" "slack_command" {
         value = var.slack_allowed_user_id
       }
       env {
-        name  = "IGFOLLOWERS_URL"
-        value = google_cloud_run_v2_service.igfollowers.uri
+        # `/run igfollowers` runs this Cloud Scheduler job now (RunJob) rather
+        # than calling the igfollowers service: the scrape outlives Slack's 3s
+        # reply window, and a run that Slack hangs up on would be cancelled.
+        name  = "IGFOLLOWERS_JOB"
+        value = google_cloud_scheduler_job.igfollowers_weekly.id
       }
     }
   }

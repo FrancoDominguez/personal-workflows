@@ -13,13 +13,15 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"google.golang.org/api/idtoken"
 )
 
 func init() {
 	functions.HTTP("slackCommand", slackCommand)
 }
 
+// slackCommand handles the `/run [action]` slash command. Slack gives a slash
+// command 3 seconds to answer, so every action must return quickly: anything
+// slow is kicked off elsewhere (see triggerIgFollowers) and only acknowledged here.
 func slackCommand(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 	if err != nil {
@@ -56,23 +58,25 @@ func slackCommand(w http.ResponseWriter, r *http.Request) {
 	actionResponse, err := runAction(r.Context(), action)
 	if err != nil {
 		log.Printf("action %q failed: %v", action, err)
-		reply(w, "Something went wrong running "+action+".")
+		reply(w, fmt.Sprintf("Something went wrong running `%s`: %v", action, err))
 		return
 	}
 
-	log.Printf("action response: %s", actionResponse)
+	log.Printf("action %q: %s", action, actionResponse)
 	reply(w, actionResponse)
 }
 
+// runAction dispatches on the text after `/run`. Every action returns the
+// message shown to the user (ephemeral, only they see it).
 func runAction(ctx context.Context, action string) (string, error) {
 	switch action {
 	case "igfollowers":
-		triggerIgFollowers(ctx)
-		// post request to gcloud run function that triggers workflow that compares ig followers
-
+		return triggerIgFollowers(ctx)
+	case "":
+		return "Usage: `/run <action>`. Available actions: `igfollowers`.", nil
+	default:
+		return fmt.Sprintf("Unknown action `%s`. Available actions: `igfollowers`.", action), nil
 	}
-
-	return "action response", nil
 }
 
 func reply(w http.ResponseWriter, text string) {
@@ -81,32 +85,4 @@ func reply(w http.ResponseWriter, text string) {
 		"response_type": "ephemeral",
 		"text":          text,
 	})
-}
-
-func triggerIgFollowers(ctx context.Context) (string, error) {
-	target := os.Getenv("IGFOLLOWERS_URL")
-
-	// Audience == the Cloud Run URL. Cloud Run rejects tokens minted for anything else.
-	client, err := idtoken.NewClient(ctx, target)
-	if err != nil {
-		return "", fmt.Errorf("creating id token client: %w", err)
-	}
-	client.Timeout = 2 * time.Second // see the Slack 3s note below
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, target, nil)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("calling igfollowers: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
-	if resp.StatusCode/100 != 2 {
-		return "", fmt.Errorf("igfollowers returned %d: %s", resp.StatusCode, body)
-	}
-	return string(body), nil
 }
