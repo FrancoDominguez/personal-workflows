@@ -20,6 +20,12 @@ docs/                   decisions and notes like this one
 
 ## Rules
 
+- **Terraform ignores what CI owns.** Every Cloud Run service's `lifecycle`
+  block ignores `template[0].containers[0].image`, `client` and
+  `client_version`: CI's `gcloud run deploy` sets all three, so without the
+  ignore every `terraform plan` shows a no-op change. New `service_<name>.tf`
+  files need the same block.
+
 - **One folder per function** under `functions/`. The folder is its own package.
   The handler + registration file is always `function.go` (unless that ever causes
   a problem); the core logic lives in a file named after what it does

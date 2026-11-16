@@ -10,7 +10,7 @@ resource "google_artifact_registry_repository" "functions" {
     id     = "delete-all-candidates"
     action = "DELETE"
     condition {
-      older_than = "0s"
+      tag_state = "ANY"
     }
   }
 
