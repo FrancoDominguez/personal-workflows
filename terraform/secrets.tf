@@ -95,3 +95,15 @@ resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_notion_a
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.unsub_runtime.email}"
 }
+
+resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_plaid_secret" {
+  secret_id = google_secret_manager_secret.plaid_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_plaid_access_token" {
+  secret_id = google_secret_manager_secret.plaid_access_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
+}

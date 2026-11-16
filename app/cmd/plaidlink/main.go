@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"francodominguez.com/personal-workflows/app/utils"
 )
 
 const page = `<!doctype html>
@@ -31,37 +32,20 @@ document.getElementById("link").onclick = async () => {
 </body>
 </html>`
 
-func plaid(path string, body map[string]any) (map[string]any, error) {
-	body["client_id"] = os.Getenv("PLAID_CLIENT_ID")
-	body["secret"] = os.Getenv("PLAID_SECRET")
-	payload, _ := json.Marshal(body)
-	res, err := http.Post("https://production.plaid.com"+path, "application/json", bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	var out map[string]any
-	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("%s: %v", path, out)
-	}
-	return out, nil
-}
-
 func main() {
+	plaid := utils.NewPlaidClient(os.Getenv("PLAID_CLIENT_ID"), os.Getenv("PLAID_SECRET"), nil)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, page)
 	})
 	http.HandleFunc("/link-token", func(w http.ResponseWriter, r *http.Request) {
-		out, err := plaid("/link/token/create", map[string]any{
+		var out map[string]any
+		err := plaid.CallPlaid(r.Context(), "/link/token/create", map[string]any{
 			"user":          map[string]string{"client_user_id": "franco"},
 			"client_name":   "personal-workflows",
 			"products":      []string{"transactions"},
 			"country_codes": []string{"CA"},
 			"language":      "en",
-		})
+		}, &out)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -70,7 +54,8 @@ func main() {
 	})
 	http.HandleFunc("/exchange", func(w http.ResponseWriter, r *http.Request) {
 		publicToken, _ := io.ReadAll(r.Body)
-		out, err := plaid("/item/public_token/exchange", map[string]any{"public_token": string(publicToken)})
+		var out map[string]any
+		err := plaid.CallPlaid(r.Context(), "/item/public_token/exchange", map[string]any{"public_token": string(publicToken)}, &out)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
