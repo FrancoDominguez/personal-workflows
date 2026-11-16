@@ -1,4 +1,12 @@
 terraform {
+  # Shared state so every machine plans against the same reality. The bucket
+  # is created out-of-band (see docs/gcs-backend.md): it can't be managed by
+  # the state it stores. Backend blocks can't use variables, hence hardcoded.
+  backend "gcs" {
+    bucket = "gmail-scanner-512523-tfstate"
+    prefix = "terraform/state"
+  }
+
   required_providers {
     google = {
       source = "hashicorp/google"
