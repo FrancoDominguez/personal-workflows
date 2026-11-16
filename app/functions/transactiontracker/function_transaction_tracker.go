@@ -1,3 +1,23 @@
+// TODO, in order of value:
+//   - Terraform: scaling { max_instance_count = 1 } like unsub/igfollowers, so two
+//     overlapping webhooks for the same bank cannot page from the same cursor and
+//     double-log.
+//   - Save the cursor once after the sync loop instead of after every page; Plaid
+//     says to restart from the batch's starting cursor on
+//     TRANSACTIONS_SYNC_MUTATION_DURING_PAGINATION.
+//   - cmd/plaidlink: pass the tracker URL as "webhook" in /link/token/create so a
+//     newly linked bank gets its webhook without a manual /item/webhook/update.
+//   - Verify the Plaid-Verification JWT (ES256 key from
+//     /webhook_verification_key/get, iat within 5 min, body sha256 match); the
+//     service is public so anyone can trigger a sync and write a junk cursor.
+//   - Ack the webhook with 200 before running a long historical sync.
+//   - Fail the request with 503 when the Firestore client is nil instead of
+//     panicking.
+//   - CallPlaid should build its payload from a copy of the body instead of
+//     writing client_id/secret into the caller's map.
+//   - Key accessTokens by the real bank ID once a second bank exists and drop the
+//     single-entry fallback.
+//   - Dedupe pending -> posted (removed + re-added) before dispatching anywhere.
 package transactiontracker
 
 import (
