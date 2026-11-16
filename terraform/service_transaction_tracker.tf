@@ -21,7 +21,11 @@ resource "google_cloud_run_v2_service" "transaction_tracker" {
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
   template {
-    service_account = google_service_account.transaction_tracker_runtime.email
+    service_account                  = google_service_account.transaction_tracker_runtime.email
+    max_instance_request_concurrency = 1
+    scaling {
+      max_instance_count = 1
+    }
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
       env {
