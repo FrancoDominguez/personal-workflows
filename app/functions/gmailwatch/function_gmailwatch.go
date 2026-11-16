@@ -41,7 +41,8 @@ func init() {
 // days, so Cloud Scheduler calls this every 6; calling it early is harmless,
 // Gmail just extends the expiry.
 func armGmailWatch(w http.ResponseWriter, r *http.Request) {
-	defer log.Print("===========================================")
+	log.Print("function start ============================")
+	defer log.Print("============================ function end")
 	ctx := r.Context()
 
 	res, err := gmailService.Users.Watch("me", &gmail.WatchRequest{

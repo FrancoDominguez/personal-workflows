@@ -38,7 +38,8 @@ func init() {
 }
 
 func transactionTracker(w http.ResponseWriter, r *http.Request) {
-	defer log.Print("===========================================")
+	log.Print("function start ============================")
+	defer log.Print("============================ function end")
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 	if err != nil {
 		http.Error(w, "could not read body", http.StatusBadRequest)
