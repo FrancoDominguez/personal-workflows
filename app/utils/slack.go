@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-// SendSlackMessage posts text to a Slack incoming webhook. The webhook URL
-// encodes the destination (channel or DM), so there is no target parameter.
 func SendSlackMessage(ctx context.Context, webhookUrl string, text string) error {
 	payload, err := json.Marshal(map[string]string{"text": text})
 	if err != nil {
