@@ -54,7 +54,8 @@ func init() {
 }
 
 func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
-	defer log.Print("===========================================")
+	log.Print("function start ============================")
+	defer log.Print("============================ function end")
 	ctx := r.Context()
 	var err error
 

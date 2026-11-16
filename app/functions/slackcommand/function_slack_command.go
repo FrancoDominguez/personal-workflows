@@ -23,7 +23,8 @@ func init() {
 // command 3 seconds to answer, so every action must return quickly: anything
 // slow is kicked off elsewhere (see triggerIgFollowers) and only acknowledged here.
 func slackCommand(w http.ResponseWriter, r *http.Request) {
-	defer log.Print("===========================================")
+	log.Print("function start ============================")
+	defer log.Print("============================ function end")
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 	if err != nil {
 		http.Error(w, "could not read body", http.StatusBadRequest)

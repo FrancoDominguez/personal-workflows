@@ -35,7 +35,8 @@ func init() {
 }
 
 func fetchIgFollowers(w http.ResponseWriter, r *http.Request) {
-	defer log.Print("===========================================")
+	log.Print("function start ============================")
+	defer log.Print("============================ function end")
 	ctx := r.Context()
 
 	webhookUrl, err := utils.GetItem[string](ctx, firestoreClient, "slack", "webhookUrls", "igFollowers")
