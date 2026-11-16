@@ -38,6 +38,22 @@ resource "google_secret_manager_secret" "notion_api_key" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_secret_manager_secret" "plaid_secret" {
+  secret_id = "plaid_secret"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_secret_manager_secret" "plaid_access_token" {
+  secret_id = "plaid_access_token"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
 resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_gmail_refresh_token" {
   secret_id = google_secret_manager_secret.gmail_refresh_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
@@ -78,4 +94,16 @@ resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_notion_a
   secret_id = google_secret_manager_secret.notion_api_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.unsub_runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_plaid_secret" {
+  secret_id = google_secret_manager_secret.plaid_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_plaid_access_token" {
+  secret_id = google_secret_manager_secret.plaid_access_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
 }
