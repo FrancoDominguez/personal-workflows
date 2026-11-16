@@ -39,9 +39,6 @@ resource "google_cloud_run_v2_service" "igfollowers" {
     }
   }
   lifecycle {
-    # CI owns the image, and every `gcloud run deploy` stamps client /
-    # client_version on the service; ignoring them stops a no-op diff on
-    # every plan.
     ignore_changes = [
       template[0].containers[0].image,
       client,
