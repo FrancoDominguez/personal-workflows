@@ -36,9 +36,7 @@ type notionBlockContent struct {
 }
 
 type notionBlock struct {
-	Id          string `json:"id"`
-	Type        string `json:"type"`
-	HasChildren bool   `json:"has_children"`
+	Type string `json:"type"`
 }
 
 type notionChildrenPage struct {
@@ -47,62 +45,57 @@ type notionChildrenPage struct {
 	NextCursor string            `json:"next_cursor"`
 }
 
-// GetPageText returns the plain text of every block on a page, one block per
-// line, in page order. Nested blocks (toggles, sub-bullets) are included.
+// GetPageText returns the plain text of a page's top-level blocks, one block
+// per line, in page order.
 func (c *NotionClient) GetPageText(ctx context.Context, pageId string) (string, error) {
 	var lines []string
-	if err := c.collectText(ctx, pageId, &lines); err != nil {
-		return "", err
-	}
-	return strings.Join(lines, "\n"), nil
-}
-
-func (c *NotionClient) collectText(ctx context.Context, blockId string, lines *[]string) error {
 	cursor := ""
 	for {
-		page, err := c.fetchChildren(ctx, blockId, cursor)
+		page, err := c.fetchChildren(ctx, pageId, cursor)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		for _, raw := range page.Results {
-			var block notionBlock
-			if err := json.Unmarshal(raw, &block); err != nil {
-				return fmt.Errorf("decoding notion block: %w", err)
+			text, err := blockText(raw)
+			if err != nil {
+				return "", err
 			}
-
-			var byType map[string]json.RawMessage
-			if err := json.Unmarshal(raw, &byType); err != nil {
-				return fmt.Errorf("decoding notion block: %w", err)
-			}
-
-			var content notionBlockContent
-			if body, ok := byType[block.Type]; ok {
-				if err := json.Unmarshal(body, &content); err != nil {
-					return fmt.Errorf("decoding notion %s block: %w", block.Type, err)
-				}
-			}
-
-			var text strings.Builder
-			for _, rt := range content.RichText {
-				text.WriteString(rt.PlainText)
-			}
-			if text.Len() > 0 {
-				*lines = append(*lines, text.String())
-			}
-
-			if block.HasChildren && block.Type != "child_page" && block.Type != "child_database" {
-				if err := c.collectText(ctx, block.Id, lines); err != nil {
-					return err
-				}
+			if text != "" {
+				lines = append(lines, text)
 			}
 		}
 
 		if !page.HasMore {
-			return nil
+			return strings.Join(lines, "\n"), nil
 		}
 		cursor = page.NextCursor
 	}
+}
+
+func blockText(raw json.RawMessage) (string, error) {
+	var block notionBlock
+	if err := json.Unmarshal(raw, &block); err != nil {
+		return "", fmt.Errorf("decoding notion block: %w", err)
+	}
+
+	var byType map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &byType); err != nil {
+		return "", fmt.Errorf("decoding notion block: %w", err)
+	}
+
+	var content notionBlockContent
+	if body, ok := byType[block.Type]; ok {
+		if err := json.Unmarshal(body, &content); err != nil {
+			return "", fmt.Errorf("decoding notion %s block: %w", block.Type, err)
+		}
+	}
+
+	var text strings.Builder
+	for _, rt := range content.RichText {
+		text.WriteString(rt.PlainText)
+	}
+	return text.String(), nil
 }
 
 func (c *NotionClient) fetchChildren(ctx context.Context, blockId string, cursor string) (notionChildrenPage, error) {

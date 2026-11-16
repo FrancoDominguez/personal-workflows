@@ -16,8 +16,7 @@ func TestGetPageText(t *testing.T) {
 				{"id": "b1", "type": "heading_1", "has_children": false,
 				 "heading_1": {"rich_text": [{"plain_text": "System "}, {"plain_text": "prompt"}]}},
 				{"id": "b2", "type": "toggle", "has_children": true,
-				 "toggle": {"rich_text": [{"plain_text": "Rules"}]}},
-				{"id": "b3", "type": "child_page", "has_children": true, "child_page": {"title": "Other"}}
+				 "toggle": {"rich_text": [{"plain_text": "Rules"}]}}
 			],
 			"has_more": true,
 			"next_cursor": "c2"
@@ -27,14 +26,6 @@ func TestGetPageText(t *testing.T) {
 				{"id": "b4", "type": "divider", "has_children": false, "divider": {}},
 				{"id": "b5", "type": "code", "has_children": false,
 				 "code": {"language": "plain text", "rich_text": [{"plain_text": "You are a helpful bot.\nAnswer briefly."}]}}
-			],
-			"has_more": false,
-			"next_cursor": null
-		}`,
-		"b2|": `{
-			"results": [
-				{"id": "b6", "type": "bulleted_list_item", "has_children": false,
-				 "bulleted_list_item": {"rich_text": [{"plain_text": "Be polite"}]}}
 			],
 			"has_more": false,
 			"next_cursor": null
@@ -73,7 +64,6 @@ func TestGetPageText(t *testing.T) {
 	want := strings.Join([]string{
 		"System prompt",
 		"Rules",
-		"Be polite",
 		"You are a helpful bot.\nAnswer briefly.",
 	}, "\n")
 	if got != want {
