@@ -9,8 +9,10 @@ resource "google_artifact_registry_repository" "functions" {
   cleanup_policies {
     id     = "delete-all-candidates"
     action = "DELETE"
+    # Matches every version. No `older_than`: the API drops a zero duration,
+    # so `older_than = "0s"` showed up as a diff on every plan.
     condition {
-      older_than = "0s"
+      tag_state = "ANY"
     }
   }
 
