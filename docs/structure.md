@@ -16,6 +16,9 @@ app/                    Go module (francodominguez.com/gmail-webhook/app)
 terraform/              all infrastructure (one service_<name>.tf per Cloud Run
                         function, each with its own runtime service account)
 docs/                   decisions and notes like this one
+.githooks/              tracked git hooks; enabled per clone with
+                        `git config core.hooksPath .githooks`
+  pre-commit            gofmt + terraform fmt on staged files, re-stages the result
 ```
 
 ## Rules

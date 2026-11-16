@@ -13,6 +13,12 @@ Gmail inbox change ──▶ Pub/Sub topic (gmail-notify) ──▶ Cloud Run fu
 
 ## Setup (one time)
 
+0. Enable the repo's git hooks (`.githooks/pre-commit` runs `gofmt` and `terraform fmt` on
+   staged files and re-stages the result; it refuses to run on a file that also has unstaged
+   changes so it never stages work you didn't mean to commit):
+   ```sh
+   git config core.hooksPath .githooks
+   ```
 1. Create a GCP project with billing enabled, then `gcloud auth application-default login`.
 2. In the console: **APIs & Services → OAuth consent screen** → External, add your Gmail address
    as a test user. Then **Credentials → Create credentials → OAuth client ID → Desktop app** →

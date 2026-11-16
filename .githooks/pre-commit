@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail -o noglob
+IFS=$'\n'
+
+staged() {
+    git diff --cached --name-only --diff-filter=ACMR -- "$@"
+}
+
+go_files=$(staged '*.go')
+tf_files=$(staged '*.tf' '*.tfvars' '*.tftest.hcl')
+[ -n "$go_files$tf_files" ] || exit 0
+
+partial=$(git diff --name-only -- $go_files $tf_files)
+if [ -n "$partial" ]; then
+    echo "pre-commit: unstaged changes in files about to be formatted, stage or stash them first:" >&2
+    printf '  %s\n' $partial >&2
+    exit 1
+fi
+
+changed=
+if [ -n "$go_files" ]; then
+    changed=$(gofmt -l -w $go_files)
+fi
+for f in $tf_files; do
+    terraform fmt -check "$f" >/dev/null && continue
+    terraform fmt "$f" >/dev/null
+    changed="$changed${changed:+$'\n'}$f"
+done
+
+if [ -n "$changed" ]; then
+    git add -- $changed
+    echo "pre-commit: formatted and re-staged:"
+    printf '  %s\n' $changed
+fi
