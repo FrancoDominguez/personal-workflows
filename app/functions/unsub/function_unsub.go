@@ -20,6 +20,7 @@ var (
 	firestoreClient *firestore.Client
 	gmailService    *gmail.Service
 	typesafeClient  utils.TypesafeClient
+	notionClient    utils.NotionClient
 )
 
 func init() {
@@ -33,6 +34,7 @@ func init() {
 	gmailClientSecret := os.Getenv("GMAIL_CLIENT_SECRET")
 	gmailRefreshToken := os.Getenv("GMAIL_REFRESH_TOKEN")
 	typesafeApiKey := os.Getenv("TYPESAFE_API_KEY")
+	notionApiKey := os.Getenv("NOTION_API_KEY")
 
 	firestoreClient, err = firestore.NewClient(ctx, projectId)
 	if err != nil {
@@ -47,6 +49,8 @@ func init() {
 		log.Printf("Error starting gmail service: %v", err)
 		return
 	}
+
+	notionClient = utils.NewNotionClient(notionApiKey)
 }
 
 func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
@@ -89,6 +93,17 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		for _, messageAdded := range history.MessagesAdded {
 			messageIds = append(messageIds, messageAdded.Message.Id)
 		}
+	}
+
+	instructionsPageId, err := notionClient.PageIdByTitle(ctx, "Email Auto Unsubscriber")
+	if err != nil {
+		log.Printf("finding instructions page: %v", err)
+		return
+	}
+	instructions, err := notionClient.PageText(ctx, instructionsPageId)
+	if err != nil {
+		log.Printf("fetching instructions from page %s: %v", instructionsPageId, err)
+		return
 	}
 
 	for _, messageId := range messageIds {
@@ -156,7 +171,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		instructions := "should I unsubscribe from this email? I am not interested in marketing products"
 		state := fmt.Sprintf("sender: %s\nsubject: %s\nbody: %s", sender, subject, textContent)
 		cutoff := 0.5
 
