@@ -38,6 +38,22 @@ resource "google_secret_manager_secret" "notion_api_key" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_secret_manager_secret" "plaid_secret" {
+  secret_id = "plaid_secret"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_secret_manager_secret" "plaid_access_token" {
+  secret_id = "plaid_access_token"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
 resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_gmail_refresh_token" {
   secret_id = google_secret_manager_secret.gmail_refresh_token.secret_id
   role      = "roles/secretmanager.secretAccessor"

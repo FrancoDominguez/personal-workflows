@@ -38,3 +38,8 @@ variable "slack_allowed_user_id" {
   type        = string
   description = "Slack member id allowed to invoke the /run slash command"
 }
+
+variable "plaid_client_id" {
+  type        = string
+  description = "Client ID for Plaid"
+}
