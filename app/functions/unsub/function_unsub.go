@@ -160,17 +160,6 @@ func autoEmailUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		contentList, err := utils.GetItem[[]any](ctx, firestoreClient, "gmail", "contentList", "contentList")
-		if err != nil && status.Code(err) != codes.NotFound {
-			return
-		}
-
-		contentList = append(contentList, textContent)
-		err = utils.SetItem(ctx, firestoreClient, "gmail", "contentList", "contentList", contentList)
-		if err != nil {
-			return
-		}
-
 		state := fmt.Sprintf("sender: %s\nsubject: %s\nbody: %s", sender, subject, textContent)
 		cutoff := 0.5
 
