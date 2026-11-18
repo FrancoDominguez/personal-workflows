@@ -33,10 +33,6 @@ resource "google_cloud_run_v2_service" "transaction_tracker" {
         value = var.project_id
       }
       env {
-        name  = "FUNCTION_TARGET"
-        value = "transactionTracker"
-      }
-      env {
         name  = "PLAID_CLIENT_ID"
         value = var.plaid_client_id
       }
