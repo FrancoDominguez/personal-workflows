@@ -4,9 +4,8 @@
 package function
 
 import (
-	_ "francodominguez.com/personal-workflows/app/functions/gmailwatch"         // registers armGmailWatch
-	_ "francodominguez.com/personal-workflows/app/functions/igfollowers"        // registers fetchIgFollowers
-	_ "francodominguez.com/personal-workflows/app/functions/slackcommand"       // registers slackCommand
-	_ "francodominguez.com/personal-workflows/app/functions/transactiontracker" // registers transactionTracker
-	_ "francodominguez.com/personal-workflows/app/functions/unsub"              // registers autoEmailUnsubscribe
+	_ "francodominguez.com/personal-workflows/app/functions/gmailwatch"   // registers armGmailWatch
+	_ "francodominguez.com/personal-workflows/app/functions/igfollowers"  // registers fetchIgFollowers
+	_ "francodominguez.com/personal-workflows/app/functions/slackcommand" // registers slackCommand
+	_ "francodominguez.com/personal-workflows/app/functions/unsub"        // registers autoEmailUnsubscribe
 )
