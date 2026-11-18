@@ -1,6 +1,6 @@
 PERSONAL_WORKFLOWS_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
-bnd() {
+bndf() {
     local env_file="$PERSONAL_WORKFLOWS_ROOT/.env"
     [[ -f $env_file ]] || { echo "bnd: missing $env_file" >&2; return 1; }
 
@@ -18,11 +18,11 @@ bnd() {
     fi
 
     echo "bnd: dispatching Build and Deploy on $repo@$ref"
-    gh workflow run publish.yaml --repo "$repo" --ref "$ref" || return
+    gh workflow run publish_functions.yaml --repo "$repo" --ref "$ref" || return
     sleep 5
 
     local run_id
-    run_id=$(gh run list --repo "$repo" --workflow publish.yaml --branch "$ref" \
+    run_id=$(gh run list --repo "$repo" --workflow publish_functions.yaml --branch "$ref" \
         --limit 1 --json databaseId --jq '.[0].databaseId')
     [[ -n $run_id ]] || { echo "bnd: could not find the run" >&2; return 1; }
     gh run watch "$run_id" --repo "$repo" --exit-status
