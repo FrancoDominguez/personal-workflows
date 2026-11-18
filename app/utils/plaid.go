@@ -26,14 +26,10 @@ type PlaidTransaction struct {
 	Name          string  `json:"name"`
 	MerchantName  string  `json:"merchant_name"`
 	Pending       bool    `json:"pending"`
-}
-
-type PlaidSyncPage struct {
-	Added      []PlaidTransaction `json:"added"`
-	Modified   []PlaidTransaction `json:"modified"`
-	Removed    []PlaidTransaction `json:"removed"`
-	NextCursor string             `json:"next_cursor"`
-	HasMore    bool               `json:"has_more"`
+	Category      struct {
+		Primary  string `json:"primary"`
+		Detailed string `json:"detailed"`
+	} `json:"personal_finance_category"`
 }
 
 // accessTokens maps bank ID → access token. A bank ID is Plaid's item_id:
@@ -67,18 +63,33 @@ func (c *PlaidClient) getAccessToken(bankID string) (string, error) {
 	return "", fmt.Errorf("no access token configured for bank %s", bankID)
 }
 
-func (c *PlaidClient) SyncTransactions(ctx context.Context, bankID string, cursor string) (PlaidSyncPage, error) {
-	var page PlaidSyncPage
+func (c *PlaidClient) GetTransactions(ctx context.Context, bankID string, startDate string, endDate string) ([]PlaidTransaction, error) {
 	accessToken, err := c.getAccessToken(bankID)
 	if err != nil {
-		return page, err
+		return nil, err
 	}
-	err = c.CallPlaid(ctx, "/transactions/sync", map[string]any{
-		"access_token": accessToken,
-		"cursor":       cursor,
-		"count":        500,
-	}, &page)
-	return page, err
+
+	const pageSize = 500
+	var transactions []PlaidTransaction
+	for {
+		var page struct {
+			Transactions      []PlaidTransaction `json:"transactions"`
+			TotalTransactions int                `json:"total_transactions"`
+		}
+		err = c.CallPlaid(ctx, "/transactions/get", map[string]any{
+			"access_token": accessToken,
+			"start_date":   startDate,
+			"end_date":     endDate,
+			"options":      map[string]any{"count": pageSize, "offset": len(transactions)},
+		}, &page)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, page.Transactions...)
+		if len(page.Transactions) == 0 || len(transactions) >= page.TotalTransactions {
+			return transactions, nil
+		}
+	}
 }
 
 func (c *PlaidClient) CallPlaid(ctx context.Context, path string, body map[string]any, out any) error {

@@ -2,10 +2,13 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func GetItem[T any](ctx context.Context, client *firestore.Client, collection string, document string, field string) (T, error) {
@@ -29,12 +32,26 @@ func GetItem[T any](ctx context.Context, client *firestore.Client, collection st
 		return result, err
 	}
 	result, ok := fieldValue.(T)
-	if !ok {
-		log.Printf("%s is not a %T, got %T", field, result, fieldValue)
-		return result, ErrWrongType
+	if ok {
+		return result, nil
+	}
+
+	encoded, err := json.Marshal(fieldValue)
+	if err == nil {
+		err = json.Unmarshal(encoded, &result)
+	}
+	if err != nil {
+		var zero T
+		log.Printf("%s is not a %T, got %T", field, zero, fieldValue)
+		return zero, ErrWrongType
 	}
 
 	return result, nil
+}
+
+func IsNotFound(err error) bool {
+	var noField *firestore.FieldNotFoundError
+	return status.Code(err) == codes.NotFound || errors.As(err, &noField)
 }
 
 func SetItem(ctx context.Context, client *firestore.Client, collection string, document string, field string, value any) error {
