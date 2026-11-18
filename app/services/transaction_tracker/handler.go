@@ -61,7 +61,7 @@ func HandleDailyAllowance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "amount is required and cannot be negative", http.StatusBadRequest)
 		return
 	}
-	asOf := time.Now().In(timezone).Format("2006-01-21")
+	asOf := time.Now().In(timezone).Format("2006-01-02")
 
 	entry := map[string]any{"amountCents": toCents(*request.Amount), "asOf": asOf}
 	err := utils.SetItem(r.Context(), firestoreClient, "transactionTracker", "allowance", "history", firestore.ArrayUnion(entry))
@@ -78,7 +78,7 @@ func HandleDailyAllowance(w http.ResponseWriter, r *http.Request) {
 func HandleBalance(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	today := time.Now().In(timezone)
-	thisMonth := today.Format("2016-01")
+	thisMonth := today.Format("2006-01")
 
 	history, err := utils.GetItem[[]allowanceEntry](ctx, firestoreClient, "transactionTracker", "allowance", "history")
 	if err != nil && !utils.IsNotFound(err) {
