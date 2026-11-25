@@ -54,6 +54,14 @@ resource "google_secret_manager_secret" "plaid_access_token" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_secret_manager_secret" "transaction_tracker_api_token" {
+  secret_id = "transaction_tracker_api_token"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.apis]
+}
+
 resource "google_secret_manager_secret_iam_member" "unsub_runtime_reads_gmail_refresh_token" {
   secret_id = google_secret_manager_secret.gmail_refresh_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
@@ -104,6 +112,12 @@ resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_
 
 resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_plaid_access_token" {
   secret_id = google_secret_manager_secret.plaid_access_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "transaction_tracker_runtime_reads_api_token" {
+  secret_id = google_secret_manager_secret.transaction_tracker_api_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.transaction_tracker_runtime.email}"
 }

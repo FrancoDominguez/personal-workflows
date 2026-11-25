@@ -54,6 +54,15 @@ resource "google_cloud_run_v2_service" "transaction_tracker" {
           }
         }
       }
+      env {
+        name = "API_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.transaction_tracker_api_token.secret_id
+            version = "latest"
+          }
+        }
+      }
     }
   }
   lifecycle {
