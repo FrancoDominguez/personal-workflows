@@ -16,8 +16,8 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /{$}", transactionTracker.HandleWebhook)
-	mux.HandleFunc("PUT /daily-allowance", transactionTracker.HandleDailyAllowance)
-	mux.HandleFunc("GET /balance", transactionTracker.HandleBalance)
+	mux.HandleFunc("PUT /daily-allowance", transactionTracker.RequireToken(transactionTracker.HandleDailyAllowance))
+	mux.HandleFunc("GET /balance", transactionTracker.RequireToken(transactionTracker.HandleBalance))
 
 	port := os.Getenv("PORT")
 	if port == "" {

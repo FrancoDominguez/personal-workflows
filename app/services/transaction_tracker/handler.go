@@ -20,6 +20,7 @@ var (
 	firestoreClient *firestore.Client
 	plaidClient     utils.PlaidClient
 	timezone        *time.Location
+	apiToken        string
 )
 
 type webhook struct {
@@ -34,6 +35,7 @@ type allowanceEntry struct {
 }
 
 func init() {
+	apiToken = os.Getenv("API_TOKEN")
 	plaidClient = utils.NewPlaidClient(os.Getenv("PLAID_CLIENT_ID"), os.Getenv("PLAID_SECRET"), map[string]string{"td": os.Getenv("PLAID_ACCESS_TOKEN")})
 
 	var err error
