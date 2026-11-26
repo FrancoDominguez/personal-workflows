@@ -110,6 +110,15 @@ func HandleBalance(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func HandleRefresh(w http.ResponseWriter, r *http.Request) {
+	if err := plaidClient.RefreshTransactions(r.Context(), "td"); err != nil {
+		log.Printf("refreshing transactions: %v", err)
+		http.Error(w, "refresh failed", http.StatusBadGateway)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))

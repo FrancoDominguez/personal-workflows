@@ -92,6 +92,16 @@ func (c *PlaidClient) GetTransactions(ctx context.Context, bankID string, startD
 	}
 }
 
+func (c *PlaidClient) RefreshTransactions(ctx context.Context, bankID string) error {
+	accessToken, err := c.getAccessToken(bankID)
+	if err != nil {
+		return err
+	}
+
+	var response struct{}
+	return c.CallPlaid(ctx, "/transactions/refresh", map[string]any{"access_token": accessToken}, &response)
+}
+
 func (c *PlaidClient) CallPlaid(ctx context.Context, path string, body map[string]any, out any) error {
 	body["client_id"] = c.clientId
 	body["secret"] = c.secret
